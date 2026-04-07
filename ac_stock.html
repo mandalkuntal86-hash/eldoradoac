@@ -225,6 +225,29 @@ tbody td.tc{text-align:center}
   body{background:#fff}
 }
 
+/* ADMIN LOGIN MODAL */
+.admin-overlay{display:none;position:fixed;inset:0;background:rgba(10,25,60,.72);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.admin-overlay.open{display:flex}
+.admin-box{background:#fff;border-radius:18px;padding:36px 32px 28px;width:92%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.35);text-align:center;position:relative}
+.admin-box .ab-logo{font-size:42px;margin-bottom:6px}
+.admin-box h2{font-size:18px;font-weight:800;color:#0d47a1;margin-bottom:4px}
+.admin-box p{font-size:12px;color:#94a3b8;margin-bottom:22px}
+.admin-box .form-group{text-align:left;margin-bottom:14px}
+.admin-box .form-group label{font-size:11px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px}
+.admin-box .form-group input{width:100%;padding:10px 12px;border:1.5px solid #cbd5e1;border-radius:8px;font-size:14px;color:#1a2332;transition:border .2s}
+.admin-box .form-group input:focus{outline:none;border-color:#1976d2;box-shadow:0 0 0 3px rgba(25,118,210,.12)}
+.btn-login{width:100%;padding:11px;background:linear-gradient(135deg,#0d47a1,#1976d2);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:800;cursor:pointer;margin-top:6px;letter-spacing:.3px;transition:opacity .2s}
+.btn-login:hover{opacity:.9}
+.btn-guest{width:100%;padding:9px;background:#f1f5f9;color:#64748b;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;margin-top:8px;transition:background .2s}
+.btn-guest:hover{background:#e8f0fe;color:#1976d2}
+.login-err{color:#c62828;font-size:12px;font-weight:700;margin-top:10px;min-height:18px}
+.admin-badge{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.18);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;cursor:pointer;transition:background .2s;white-space:nowrap}
+.admin-badge:hover{background:rgba(255,255,255,.28)}
+.admin-badge .ab-dot{width:8px;height:8px;border-radius:50%;background:#4ade80;flex-shrink:0}
+.admin-badge.guest .ab-dot{background:#fbbf24}
+/* LOCK overlay on protected elements */
+.admin-locked{opacity:.45;pointer-events:none;filter:grayscale(.4)}
+
 /* FIREBASE SYNC INDICATOR */
 #fb-status{display:flex;align-items:center;gap:6px;font-size:11px;padding:4px 12px;border-radius:14px;font-weight:700;cursor:default;transition:all .3s;white-space:nowrap}
 #fb-status.connecting{background:rgba(255,255,255,.15);color:#fff;opacity:.8}
@@ -259,6 +282,9 @@ tbody td.tc{text-align:center}
     <div style="display:flex;align-items:center;gap:10px">
       <div id="fb-status" class="connecting"><span class="fb-dot"></span><span id="fb-status-text">Connecting…</span></div>
       <div class="live-date" id="liveDate"></div>
+      <div class="admin-badge guest" id="adminBadge" onclick="handleAdminBadgeClick()" title="Admin Login">
+        <span class="ab-dot"></span><span id="adminBadgeText">👤 Guest</span>
+      </div>
     </div>
   </div>
   <div class="header-sub">
@@ -508,6 +534,26 @@ tbody td.tc{text-align:center}
 
 <!-- TOAST -->
 <div id="toast"></div>
+
+<!-- ADMIN LOGIN MODAL -->
+<div class="admin-overlay open" id="adminModal">
+  <div class="admin-box">
+    <div class="ab-logo">🔐</div>
+    <h2>Admin Login</h2>
+    <p>Sign in as Admin to add, edit or delete entries.<br>Or continue as Guest (view only).</p>
+    <div class="form-group">
+      <label>Admin ID</label>
+      <input type="text" id="login-id" placeholder="Enter Admin ID" autocomplete="username"/>
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="login-pass" placeholder="Enter Password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"/>
+    </div>
+    <div class="login-err" id="loginErr"></div>
+    <button class="btn-login" onclick="doLogin()">🔓 Login as Admin</button>
+    <button class="btn-guest" onclick="continueAsGuest()">👁 Continue as Guest (View Only)</button>
+  </div>
+</div>
 <!-- CONFIRM MODAL -->
 <div class="modal-overlay" id="confirmModal">
   <div class="modal">
@@ -521,11 +567,80 @@ tbody td.tc{text-align:center}
 </div>
 
 <script>
+/* ===== ADMIN AUTH ===== */
+const ADMIN_ID   = 'mandalkuntal';
+const ADMIN_PASS = 'Buku@2016';
+let isAdmin = false;
+
+function doLogin(){
+  const id=document.getElementById('login-id').value.trim();
+  const pw=document.getElementById('login-pass').value;
+  if(id===ADMIN_ID && pw===ADMIN_PASS){
+    isAdmin=true;
+    document.getElementById('adminModal').classList.remove('open');
+    setAdminUI(true);
+    toast('✅ Logged in as Admin');
+  } else {
+    document.getElementById('loginErr').textContent='❌ Invalid ID or Password. Try again.';
+    document.getElementById('login-pass').value='';
+  }
+}
+
+function continueAsGuest(){
+  isAdmin=false;
+  document.getElementById('adminModal').classList.remove('open');
+  setAdminUI(false);
+  toast('👁 Viewing as Guest — read-only mode');
+}
+
+function handleAdminBadgeClick(){
+  if(isAdmin){
+    if(confirm('Logout from Admin?')){
+      isAdmin=false;
+      setAdminUI(false);
+      toast('Logged out.');
+    }
+  } else {
+    // re-open login modal
+    document.getElementById('login-id').value='';
+    document.getElementById('login-pass').value='';
+    document.getElementById('loginErr').textContent='';
+    document.getElementById('adminModal').classList.add('open');
+  }
+}
+
+function setAdminUI(admin){
+  const badge=document.getElementById('adminBadge');
+  const dot=badge.querySelector('.ab-dot');
+  document.getElementById('adminBadgeText').textContent=admin?'🛡 Admin':'👤 Guest';
+  badge.classList.toggle('guest',!admin);
+  dot.style.background=admin?'#4ade80':'#fbbf24';
+
+  // Add Product button in entry tab
+  const addBtn=document.getElementById('addProductBtn');
+  if(addBtn){addBtn.classList.toggle('admin-locked',!admin);addBtn.title=admin?'':'Admin only';}
+
+  // Re-render table so action buttons reflect auth state
+  if(typeof renderTable==='function') renderTable();
+}
+
+function requireAdmin(action){
+  if(!isAdmin){
+    document.getElementById('login-id').value='';
+    document.getElementById('login-pass').value='';
+    document.getElementById('loginErr').textContent='';
+    document.getElementById('adminModal').classList.add('open');
+    toast('🔒 Admin login required.',false);
+    return false;
+  }
+  return true;
+}
+
 /* ===== FIREBASE CONFIG — REPLACE WITH YOUR PROJECT CREDENTIALS ===== */
 const FIREBASE_CONFIG = {
   apiKey:            "AIzaSyC4rl4pHhhWg13yrYura7280eQVo2Aw2FE",
   authDomain:        "eldoradoac-fab9a.firebaseapp.com",
-  databaseURL:       "https://eldoradoac-fab9a-default-rtdb.asia-southeast1.firebasedatabase.app",
+  databaseURL:       "https://eldoradoac-fab9a-default-rtdb.firebaseio.com",
   projectId:         "eldoradoac-fab9a",
   storageBucket:     "eldoradoac-fab9a.firebasestorage.app",
   messagingSenderId: "1000020486321",
@@ -671,6 +786,7 @@ function closeForm(){
 
 /* ===== ADD / EDIT ===== */
 function addEntry(){
+  if(!requireAdmin()) return;
   const date=document.getElementById('f-date').value;
   const company=document.getElementById('f-company').value.trim();
   const model=document.getElementById('f-model').value.trim();
@@ -701,6 +817,7 @@ function clearForm(){
 }
 
 function editEntry(id){
+  if(!requireAdmin()) return;
   const e=stock.find(x=>x.id===id);if(!e)return;
   editId=id;
   document.getElementById('f-date').value=e.date;document.getElementById('f-company').value=e.company;
@@ -753,6 +870,7 @@ function updateCompanyFilters(){
 
 /* ===== SELL STOCK (from card) ===== */
 function sellStock(key){
+  if(!requireAdmin()) return;
   const inp=document.getElementById('sell-qty-'+key);
   const qty=parseInt(inp.value)||0;
   if(qty<1){toast('Enter quantity to sell.',false);return;}
@@ -879,14 +997,15 @@ function renderTable(){
       ${balance>0?`<div class="pc-sell-panel">
         <span class="pc-sell-label">🛒 Sell:</span>
         <input class="pc-sell-input" type="number" id="${inputId}" min="1" max="${balance}" value="1" placeholder="Qty"/>
-        <button class="btn-sell" onclick="sellStock('${safeSellKey}')">Confirm Sale</button>
+        <button class="btn-sell${isAdmin?'':' admin-locked'}" onclick="sellStock('${safeSellKey}')" title="${isAdmin?'':'Admin only'}">Confirm Sale</button>
         <span style="font-size:11px;color:#92400e;margin-left:auto">Max: ${balance}</span>
       </div>`:`<div style="padding:8px 14px;text-align:center;font-size:12px;color:#9a3412;font-weight:700;background:#ffedd5">⚠ Out of Stock</div>`}
       ${p.remarks?`<div class="pc-remarks">💬 ${p.remarks}</div>`:''}
       <div class="pc-footer">
         <span class="pc-date">📅 Last: ${fmtDate(p.lastDate)}</span>
         <button class="btn-edit" onclick="editProductEntries('${safeSellKey}')">📋 History</button>
-        <button class="btn-del" onclick="deleteProduct('${safeSellKey}')">🗑 Delete</button>
+        <button class="btn-edit" style="background:#e8f5e9;color:#2e7d32${isAdmin?'':';opacity:.45;cursor:not-allowed'}" onclick="editProduct('${safeSellKey}')" title="${isAdmin?'Edit':'Admin only'}">✏️ Edit</button>
+        <button class="btn-del" style="${isAdmin?'':';opacity:.45;cursor:not-allowed'}" onclick="deleteProduct('${safeSellKey}')" title="${isAdmin?'Delete':'Admin only'}">🗑 Delete</button>
       </div>
     </div>`;
   }).join('');
@@ -897,6 +1016,7 @@ function renderTable(){
 
 /* Delete all entries for a product */
 function deleteProduct(key){
+  if(!requireAdmin()) return;
   const grp=stock.filter(e=>e.company+'||'+e.model+'||'+e.capacity===key);
   if(!grp.length)return;
   deleteId=key;
@@ -919,13 +1039,14 @@ function editProductEntries(key){
   const p=grp[0];
   let html=`<b>${p.company} — ${p.model}</b><br><br>`;
   html+=`<table style="width:100%;border-collapse:collapse;font-size:12px">`;
-  html+=`<tr style="background:#f0f6ff"><th style="padding:5px 8px;text-align:left">Date</th><th>Type</th><th>Qty</th><th>NLC</th><th></th></tr>`;
+  html+=`<tr style="background:#f0f6ff"><th style="padding:5px 8px;text-align:left">Date</th><th>Type</th><th>Qty</th><th>NLC</th><th colspan="2"></th></tr>`;
   grp.sort((a,b)=>a.date.localeCompare(b.date)).forEach(e=>{
     html+=`<tr style="border-bottom:1px solid #f1f5f9">
       <td style="padding:5px 8px">${fmtDate(e.date)}</td>
       <td><span class="badge ${e.type==='IN'?'badge-in':'badge-out'}">${e.type==='IN'?'▲ IN':'▼ OUT'}</span></td>
       <td style="text-align:center;font-weight:700">${e.qty}</td>
       <td>₹${e.nlc.toLocaleString('en-IN',{minimumFractionDigits:2})}</td>
+      <td><button class="btn-edit" style="padding:2px 7px;background:#e8f5e9;color:#2e7d32" onclick="editEntryFromHistory(${e.id})">✏️</button></td>
       <td><button class="btn-del" style="padding:2px 7px" onclick="deleteEntry(${e.id})">✕</button></td>
     </tr>`;
   });
@@ -937,8 +1058,25 @@ function editProductEntries(key){
   document.getElementById('confirmModal').classList.add('open');
 }
 
+/* Edit product — opens most recent IN entry in form */
+function editProduct(key){
+  const grp=stock.filter(e=>e.company+'||'+e.model+'||'+e.capacity===key&&e.type==='IN');
+  if(!grp.length){toast('No IN entry found to edit.',false);return;}
+  const latest=grp.sort((a,b)=>b.date.localeCompare(a.date)||b.id-a.id)[0];
+  editEntry(latest.id);
+}
+
+/* Edit individual entry from History modal */
+function editEntryFromHistory(id){
+  if(!requireAdmin()){closeModal();return;}
+  document.querySelector('#confirmModal .modal-actions').innerHTML=`<button class="btn-secondary" onclick="closeModal()">Cancel</button><button class="btn-primary" style="background:#c62828" onclick="confirmDelete()">Yes, Delete</button>`;
+  document.querySelector('#confirmModal h3').textContent='⚠️ Confirm Delete';
+  editEntry(id);
+}
+
 /* Individual entry delete (from history modal) */
 function deleteEntry(id){
+  if(!requireAdmin()) return;
   stock=stock.filter(e=>e.id!==id);
   save();computeClosing();updateSummary();renderTable();updateCompanyFilters();renderDashboard();
   closeModal();
@@ -1219,6 +1357,8 @@ function switchTab(t){
 /* ===== INIT ===== */
 initFirebase(); // Connect to Firebase (falls back to localStorage if not configured)
 computeClosing();updateCompanyFilters();renderDashboard();
+// Apply guest lock on load (login modal is shown, but lock UI just in case)
+setAdminUI(false);
 </script>
 </body>
 </html>
