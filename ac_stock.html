@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AC Stock Maintain — NLC Register</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#eef2f7;color:#1a2332;font-size:14px}
+
+/* HEADER */
+.app-header{background:linear-gradient(135deg,#0d47a1,#1976d2);color:#fff;padding:0;position:sticky;top:0;z-index:50;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+.header-top{display:flex;align-items:center;justify-content:space-between;padding:12px 24px 8px}
+.header-top h1{font-size:19px;font-weight:700;letter-spacing:.3px;display:flex;align-items:center;gap:10px}
+.header-top h1 .logo{background:rgba(255,255,255,.18);border-radius:8px;padding:4px 10px;font-size:20px}
+.live-date{font-size:12px;background:rgba(255,255,255,.15);padding:5px 14px;border-radius:20px;white-space:nowrap}
+.header-sub{background:rgba(0,0,0,.18);padding:5px 24px;font-size:11px;opacity:.9;display:flex;gap:20px;flex-wrap:wrap}
+
+/* TABS */
+.tabs{display:flex;background:#fff;border-bottom:2px solid #1976d2;padding:0 20px;overflow-x:auto}
+.tab-btn{padding:11px 18px;font-size:13px;font-weight:700;border:none;background:none;cursor:pointer;color:#64748b;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap;display:flex;align-items:center;gap:6px;transition:all .2s}
+.tab-btn.active{color:#0d47a1;border-bottom-color:#0d47a1;background:#f0f6ff}
+.tab-btn:hover:not(.active){background:#f8fafc;color:#1976d2}
+.tab-icon{font-size:15px}
+
+/* PANELS */
+.panel{display:none;padding:20px 22px;min-height:calc(100vh - 120px)}
+.panel.active{display:block}
+
+/*==== DASHBOARD ====*/
+/* KPI CARDS */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:22px}
+.kpi{background:#fff;border-radius:12px;padding:16px 18px;box-shadow:0 2px 8px rgba(0,0,0,.07);border-top:4px solid #1976d2;position:relative;overflow:hidden}
+.kpi.green{border-top-color:#2e7d32}.kpi.orange{border-top-color:#e65100}.kpi.purple{border-top-color:#6a1b9a}.kpi.teal{border-top-color:#00695c}.kpi.red{border-top-color:#c62828}.kpi.gold{border-top-color:#f57f17}
+.kpi-label{font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;font-weight:700}
+.kpi-val{font-size:28px;font-weight:800;color:#1a2332;line-height:1}
+.kpi-sub{font-size:11px;color:#94a3b8;margin-top:4px}
+.kpi-icon{position:absolute;right:14px;top:14px;font-size:22px;opacity:.15}
+
+/* DASH SECTIONS */
+.dash-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px}
+.dash-row.three{grid-template-columns:1fr 1fr 1fr}
+.dash-row.full{grid-template-columns:1fr}
+.dash-card{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.07);overflow:hidden}
+.dash-card-hdr{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:1px solid #f1f5f9}
+.dash-card-hdr h3{font-size:13px;font-weight:700;color:#0d47a1}
+.dash-card-body{padding:14px 16px}
+
+/* BAR CHART */
+.bar-chart{display:flex;flex-direction:column;gap:7px}
+.bar-row{display:flex;align-items:center;gap:8px;font-size:12px}
+.bar-label{width:80px;color:#475569;text-align:right;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-track{flex:1;background:#f1f5f9;border-radius:6px;height:20px;position:relative;overflow:hidden}
+.bar-fill{height:100%;border-radius:6px;display:flex;align-items:center;padding-left:6px;font-size:11px;font-weight:700;color:#fff;transition:width .6s ease;min-width:2px}
+.bar-fill.in{background:linear-gradient(90deg,#1976d2,#42a5f5)}
+.bar-fill.out{background:linear-gradient(90deg,#e65100,#ff8a65)}
+.bar-val{font-size:11px;font-weight:700;color:#475569;min-width:24px;text-align:right}
+
+/* MINI TABLE */
+.mini-table{width:100%;border-collapse:collapse;font-size:12px}
+.mini-table th{background:#f0f6ff;color:#0d47a1;padding:7px 10px;text-align:left;font-size:11px;font-weight:700}
+.mini-table td{padding:7px 10px;border-bottom:1px solid #f8f9fb;vertical-align:middle}
+.mini-table tr:last-child td{border-bottom:none}
+.mini-table tr:hover td{background:#fafcff}
+
+/* DONUT CHART */
+.donut-wrap{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.donut-svg{flex-shrink:0}
+.donut-legend{display:flex;flex-direction:column;gap:8px}
+.legend-item{display:flex;align-items:center;gap:7px;font-size:12px}
+.legend-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+
+/* MONTH HEATMAP */
+.month-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.month-cell{border-radius:8px;padding:10px 6px;text-align:center;font-size:11px;cursor:default}
+.month-cell .mcl{font-weight:700;font-size:13px;display:block}
+.month-cell .mcs{font-size:10px;color:#64748b}
+
+/*==== FORM ====*/
+.add-product-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+.btn-add-product{display:flex;align-items:center;gap:8px;padding:10px 22px;background:#0d47a1;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(13,71,161,.3);transition:all .2s}
+.btn-add-product:hover{background:#1565c0;transform:translateY(-1px)}
+.btn-add-product .plus-icon{width:22px;height:22px;background:rgba(255,255,255,.22);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px}
+.form-card-wrap{overflow:hidden;max-height:0;opacity:0;transition:max-height .45s cubic-bezier(.4,0,.2,1),opacity .3s ease,margin .3s;margin-bottom:0}
+.form-card-wrap.open{max-height:1000px;opacity:1;margin-bottom:20px}
+.form-card{background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(13,71,161,.10);padding:20px;border-top:3px solid #1976d2}
+.form-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.form-card-header h2{font-size:14px;font-weight:700;color:#0d47a1;display:flex;align-items:center;gap:6px}
+.btn-close-form{background:none;border:none;cursor:pointer;font-size:22px;color:#94a3b8;padding:2px 6px;border-radius:4px}
+.btn-close-form:hover{background:#f1f5f9;color:#475569}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:13px}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.form-group label{font-size:11px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.4px}
+.form-group input,.form-group select,.form-group textarea{padding:8px 10px;border:1.5px solid #cbd5e1;border-radius:7px;font-size:13px;color:#1a2332;background:#fff;transition:border .2s}
+.form-group input:focus,.form-group select:focus{outline:none;border-color:#1976d2;box-shadow:0 0 0 3px rgba(25,118,210,.1)}
+.form-group textarea{resize:vertical;min-height:58px}
+.star-select{display:flex;gap:5px;flex-wrap:wrap}
+.star-btn{padding:5px 10px;border:1.5px solid #cbd5e1;border-radius:16px;font-size:12px;cursor:pointer;background:#fff;transition:all .2s;color:#475569}
+.star-btn.active{background:#fbbf24;border-color:#f59e0b;color:#78350f;font-weight:700}
+.toggle-group{display:flex;border-radius:7px;overflow:hidden;border:1.5px solid #cbd5e1}
+.toggle-btn{flex:1;padding:7px 8px;border:none;background:#fff;font-size:11px;cursor:pointer;color:#64748b;transition:all .2s;font-weight:600;white-space:nowrap}
+.toggle-btn.active{background:#0d47a1;color:#fff;font-weight:700}
+.form-actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+.btn-primary{padding:9px 24px;background:#0d47a1;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;transition:background .2s}
+.btn-primary:hover{background:#1565c0}
+.btn-secondary{padding:9px 20px;background:#f1f5f9;color:#475569;border:1.5px solid #cbd5e1;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer}
+.btn-danger-outline{padding:9px 20px;background:#fff;color:#c62828;border:1.5px solid #ef9a9a;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer}
+.btn-danger-outline:hover{background:#ffebee}
+.btn-excel{padding:9px 18px;background:#217346;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer}
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px;margin-bottom:18px}
+.sum-card{background:#fff;border-radius:10px;padding:13px 15px;border-left:4px solid #1976d2;box-shadow:0 1px 4px rgba(0,0,0,.07)}
+.sum-card.green{border-left-color:#2e7d32}.sum-card.orange{border-left-color:#e65100}.sum-card.red{border-left-color:#c62828}.sum-card.purple{border-left-color:#6a1b9a}
+.sum-label{font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;font-weight:700}
+.sum-val{font-size:22px;font-weight:800;color:#1a2332}
+.sum-sub{font-size:10px;color:#94a3b8;margin-top:2px}
+
+/*==== LEDGER TABLE ====*/
+.table-card{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.07);overflow:hidden}
+.table-toolbar{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:1px solid #f1f5f9;flex-wrap:wrap;gap:10px}
+.table-toolbar h2{font-size:14px;font-weight:700;color:#0d47a1}
+.toolbar-right{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.search-box{padding:7px 12px;border:1.5px solid #cbd5e1;border-radius:7px;font-size:13px;width:190px}
+.filter-select{padding:7px 10px;border:1.5px solid #cbd5e1;border-radius:7px;font-size:13px;background:#fff}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:900px}
+thead tr{background:#0d47a1;color:#fff}
+thead th{padding:10px 12px;text-align:left;font-size:11px;font-weight:700;white-space:nowrap;letter-spacing:.4px}
+thead th.tc{text-align:center}
+tbody tr{border-bottom:1px solid #f1f5f9;transition:background .15s}
+tbody tr:hover{background:#f0f6ff}
+tbody tr.in-row{background:#f0fdf4}
+tbody tr.out-row{background:#fff7ed}
+tbody td{padding:9px 12px;font-size:13px;vertical-align:middle}
+tbody td.tc{text-align:center}
+.badge{display:inline-block;padding:3px 9px;border-radius:12px;font-size:11px;font-weight:700;letter-spacing:.3px}
+.badge-in{background:#dcfce7;color:#166534}
+.badge-out{background:#ffedd5;color:#9a3412}
+.badge-inv{background:#dbeafe;color:#1e40af}
+.badge-noninv{background:#fce7f3;color:#9d174d}
+.badge-rep{background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0}
+.badge-nonrep{background:#fff7ed;color:#c2410c;border:1px solid #fed7aa}
+.stars{color:#f59e0b;font-size:12px}
+.nlc-val{font-weight:700;color:#0d47a1}
+.action-btns{display:flex;gap:4px;justify-content:center}
+.btn-edit{padding:4px 9px;background:#e3f2fd;color:#0d47a1;border:none;border-radius:4px;font-size:11px;cursor:pointer;font-weight:700}
+.btn-del{padding:4px 9px;background:#ffebee;color:#c62828;border:none;border-radius:4px;font-size:11px;cursor:pointer;font-weight:700}
+.empty-state{text-align:center;padding:48px;color:#94a3b8}
+.empty-state .ei{font-size:40px;margin-bottom:10px}
+.table-footer{padding:10px 16px;font-size:12px;color:#64748b;border-top:1px solid #f1f5f9;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px}
+
+/*==== REPORTS ====*/
+.rpt-filters{background:#fff;border-radius:12px;padding:16px 18px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.07);display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
+.rpt-mode-tabs{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap}
+.rpt-mode-btn{padding:8px 18px;border:2px solid #cbd5e1;border-radius:7px;background:#fff;font-size:12px;font-weight:700;cursor:pointer;color:#64748b;transition:all .2s}
+.rpt-mode-btn.active{border-color:#0d47a1;background:#0d47a1;color:#fff}
+.rpt-section{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.07);margin-bottom:16px;overflow:hidden}
+.rpt-section-hdr{background:#0d47a1;color:#fff;padding:11px 16px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px}
+.rpt-table{width:100%;border-collapse:collapse}
+.rpt-table th{background:#e8f0fe;color:#0d47a1;padding:8px 12px;font-size:11px;font-weight:700;text-align:left;border-bottom:2px solid #bbcffa}
+.rpt-table td{padding:9px 12px;font-size:13px;border-bottom:1px solid #f1f5f9}
+.rpt-table tr:last-child td{border-bottom:none}
+.rpt-table tr:hover td{background:#f8fbff}
+.rpt-total{background:#f0f6ff!important;font-weight:700}
+
+/*==== PRODUCT CARDS ====*/
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;padding:16px}
+.product-card{background:#fff;border-radius:14px;box-shadow:0 2px 10px rgba(0,0,0,.08);overflow:hidden;transition:transform .18s,box-shadow .18s;position:relative}
+.product-card:hover{transform:translateY(-3px);box-shadow:0 6px 20px rgba(0,0,0,.13)}
+.product-card{border-top:4px solid #1976d2}
+.product-card.stock-out{opacity:.7}
+.pc-header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 8px}
+.pc-sl{font-size:10px;font-weight:700;color:#94a3b8;background:#f8fafc;padding:2px 8px;border-radius:10px}
+.pc-stock-badge{font-size:12px;font-weight:800;padding:4px 12px;border-radius:12px}
+.pc-brand{padding:0 14px 2px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.pc-company{font-size:17px;font-weight:800;color:#0d47a1;line-height:1.1}
+.pc-model{font-size:11px;font-family:monospace;color:#64748b;background:#f1f5f9;padding:2px 7px;border-radius:5px}
+.pc-stars{padding:4px 14px 6px;color:#f59e0b;font-size:14px;letter-spacing:1px}
+.pc-divider{height:1px;background:#f1f5f9;margin:0 14px}
+.pc-details{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px;padding:10px 14px}
+.pc-detail{display:flex;flex-direction:column;gap:1px}
+.pc-detail-label{font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:#94a3b8;font-weight:700}
+.pc-detail-val{font-size:12px;font-weight:700;color:#1a2332}
+.pc-nlc-row{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:#f0f6ff;margin:0 10px 10px;border-radius:8px}
+.pc-nlc-label{font-size:10px;color:#1976d2;font-weight:700;text-transform:uppercase}
+.pc-nlc-val{font-size:16px;font-weight:800;color:#0d47a1}
+.pc-balance-bar{display:flex;align-items:center;justify-content:space-between;padding:8px 14px 4px}
+.pc-balance-label{font-size:10px;color:#475569;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+.pc-balance-val{font-size:22px;font-weight:900;line-height:1}
+.pc-sell-panel{background:#fff7ed;border-top:1px dashed #fed7aa;padding:10px 14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pc-sell-label{font-size:11px;font-weight:700;color:#92400e;flex:none}
+.pc-sell-input{width:64px;padding:5px 8px;border:1.5px solid #fed7aa;border-radius:7px;font-size:13px;font-weight:700;color:#92400e;text-align:center;background:#fff}
+.pc-sell-input:focus{outline:none;border-color:#e65100}
+.btn-sell{padding:5px 14px;background:#e65100;color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;transition:background .2s}
+.btn-sell:hover{background:#bf360c}
+.btn-sell:disabled{background:#94a3b8;cursor:not-allowed}
+.pc-remarks{padding:0 14px 8px;font-size:11px;color:#64748b;font-style:italic}
+.pc-footer{display:flex;gap:6px;padding:10px 14px;border-top:1px solid #f1f5f9;justify-content:flex-end}
+.pc-date{font-size:11px;color:#94a3b8;flex:1;display:flex;align-items:center}
+.empty-cards{text-align:center;padding:60px;color:#94a3b8;grid-column:1/-1}
+.empty-cards .ei{font-size:44px;margin-bottom:10px}
+.cards-footer{padding:10px 16px;font-size:12px;color:#64748b;border-top:1px solid #f1f5f9;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;background:#fff}
+
+/* TOAST */
+#toast{position:fixed;bottom:24px;right:24px;background:#0d47a1;color:#fff;padding:12px 20px;border-radius:9px;font-size:13px;font-weight:700;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,.22)}
+#toast.show{opacity:1}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:14px;padding:26px;width:90%;max-width:460px;box-shadow:0 10px 40px rgba(0,0,0,.22)}
+.modal h3{font-size:16px;font-weight:700;margin-bottom:14px;color:#c62828}
+.modal-actions{display:flex;gap:10px;margin-top:20px;justify-content:flex-end}
+
+@media(max-width:700px){
+  .dash-row{grid-template-columns:1fr}
+  .dash-row.three{grid-template-columns:1fr}
+  .kpi-grid{grid-template-columns:1fr 1fr}
+  .month-grid{grid-template-columns:repeat(3,1fr)}
+  .header-top h1{font-size:15px}
+  .panel{padding:14px}
+}
+@media print{
+  .tabs,.form-card,.table-toolbar,.action-btns,.form-actions,#toast,.modal-overlay,.add-product-bar,.rpt-filters,.rpt-mode-tabs{display:none!important}
+  .panel{display:block!important}
+  body{background:#fff}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="app-header">
+  <div class="header-top">
+    <h1><span class="logo">❄</span> AC Stock Maintain &nbsp;<span style="font-size:13px;font-weight:400;opacity:.8">— NLC Register</span></h1>
+    <div class="live-date" id="liveDate"></div>
+  </div>
+  <div class="header-sub">
+    <span>Model &bull; Company &bull; Star Rating &bull; Inverter Type &bull; Reporting Status &bull; <b>NLC</b></span>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('dashboard')"><span class="tab-icon">&#128200;</span> Dashboard</button>
+  <button class="tab-btn" onclick="switchTab('entry')"><span class="tab-icon">&#43;</span> Stock Entry</button>
+  <button class="tab-btn" onclick="switchTab('ledger')"><span class="tab-icon">&#128196;</span> Stock Ledger</button>
+  <button class="tab-btn" onclick="switchTab('report')"><span class="tab-icon">&#128202;</span> Reports</button>
+</div>
+
+<!-- ============ DASHBOARD PANEL ============ -->
+<div class="panel active" id="panel-dashboard">
+  <!-- KPI ROW -->
+  <div class="kpi-grid" id="kpiCards"></div>
+
+  <!-- CHARTS ROW 1 -->
+  <div class="dash-row">
+    <!-- Month-wise bar chart -->
+    <div class="dash-card">
+      <div class="dash-card-hdr">
+        <h3>&#128197; Month-wise Stock IN / OUT</h3>
+        <select id="dash-year" onchange="renderDashboard()" style="padding:4px 8px;border:1.5px solid #cbd5e1;border-radius:6px;font-size:12px"></select>
+      </div>
+      <div class="dash-card-body" id="monthChart"></div>
+    </div>
+    <!-- Brand-wise bar -->
+    <div class="dash-card">
+      <div class="dash-card-hdr"><h3>&#127970; Brand-wise Performance</h3></div>
+      <div class="dash-card-body" id="brandChart"></div>
+    </div>
+  </div>
+
+  <!-- CHARTS ROW 2 -->
+  <div class="dash-row three">
+    <!-- Inverter donut -->
+    <div class="dash-card">
+      <div class="dash-card-hdr"><h3>&#9889; Inverter Split</h3></div>
+      <div class="dash-card-body"><div class="donut-wrap" id="invDonut"></div></div>
+    </div>
+    <!-- Star rating donut -->
+    <div class="dash-card">
+      <div class="dash-card-hdr"><h3>&#9733; Star Rating Split</h3></div>
+      <div class="dash-card-body"><div class="donut-wrap" id="starDonut"></div></div>
+    </div>
+    <!-- Reporting donut -->
+    <div class="dash-card">
+      <div class="dash-card-hdr"><h3>&#128200; Reporting Split</h3></div>
+      <div class="dash-card-body"><div class="donut-wrap" id="repDonut"></div></div>
+    </div>
+  </div>
+
+  <!-- TOP BRANDS TABLE + RECENT ENTRIES -->
+  <div class="dash-row">
+    <div class="dash-card">
+      <div class="dash-card-hdr"><h3>&#127942; Top Brands — Stock IN</h3></div>
+      <div class="dash-card-body" style="padding:0" id="topBrandsTable"></div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-card-hdr"><h3>&#128337; Recent Entries</h3></div>
+      <div class="dash-card-body" style="padding:0" id="recentTable"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ STOCK ENTRY PANEL ============ -->
+<div class="panel" id="panel-entry">
+  <div class="summary-grid" id="summaryCards"></div>
+
+  <div class="add-product-bar">
+    <button class="btn-add-product" onclick="toggleForm()" id="addProductBtn">
+      <span class="plus-icon">&#43;</span> Add Product
+    </button>
+    <span id="formHint" style="font-size:12px;color:#94a3b8;font-style:italic">Click to add a new stock entry</span>
+  </div>
+
+  <div class="form-card-wrap" id="formWrap">
+    <div class="form-card">
+      <div class="form-card-header">
+        <h2>&#128393; New Stock Entry</h2>
+        <button class="btn-close-form" onclick="closeForm()">&#215;</button>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="f-date"/>
+        </div>
+        <div class="form-group">
+          <label>Company / Brand</label>
+          <input type="text" id="f-company" placeholder="e.g. Daikin, Voltas, LG" list="companyList"/>
+          <datalist id="companyList">
+            <option value="Daikin"/><option value="Voltas"/><option value="LG"/><option value="Samsung"/>
+            <option value="Hitachi"/><option value="Blue Star"/><option value="Lloyd"/><option value="Carrier"/>
+            <option value="Godrej"/><option value="Whirlpool"/><option value="O General"/><option value="Panasonic"/>
+          </datalist>
+        </div>
+        <div class="form-group">
+          <label>Model No.</label>
+          <input type="text" id="f-model" placeholder="e.g. FTKF35TV"/>
+        </div>
+        <div class="form-group">
+          <label>Capacity (Ton)</label>
+          <input type="text" id="f-capacity" placeholder="Select or type e.g. 1.5 Ton" list="capacityList" autocomplete="off"/>
+          <datalist id="capacityList">
+            <option value="0.75 Ton"/>
+            <option value="1.0 Ton"/>
+            <option value="1.5 Ton"/>
+            <option value="2.0 Ton"/>
+            <option value="2.5 Ton"/>
+            <option value="3.0 Ton"/>
+          </datalist>
+        </div>
+        <div class="form-group">
+          <label>Star Rating</label>
+          <div class="star-select">
+            <button class="star-btn" onclick="setStar(1)">&#9733; 1</button>
+            <button class="star-btn" onclick="setStar(2)">&#9733; 2</button>
+            <button class="star-btn" onclick="setStar(3)">&#9733; 3</button>
+            <button class="star-btn" onclick="setStar(4)">&#9733; 4</button>
+            <button class="star-btn" onclick="setStar(5)">&#9733; 5</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Inverter Type</label>
+          <div class="toggle-group">
+            <button class="toggle-btn active" id="btn-inv" onclick="setInvType('Inverter')">INVERTER</button>
+            <button class="toggle-btn" id="btn-noninv" onclick="setInvType('Non-Inverter')">NON-INV</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Reporting Status</label>
+          <div class="toggle-group">
+            <button class="toggle-btn active" id="btn-rep" onclick="setRepType('Reporting')">REPORTING</button>
+            <button class="toggle-btn" id="btn-nonrep" onclick="setRepType('Non-Reporting')">NON-RPT</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Quantity</label>
+          <input type="number" id="f-qty" min="1" value="1"/>
+        </div>
+        <div class="form-group">
+          <label>NLC — Net Landing Cost (&#8377;)</label>
+          <input type="number" id="f-nlc" min="0" step="0.01" placeholder="e.g. 28500"/>
+        </div>
+        <div class="form-group" style="grid-column:1/-1">
+          <label>Remarks</label>
+          <textarea id="f-remarks" placeholder="Optional notes..."></textarea>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-primary" onclick="addEntry()" id="addBtn">&#43; Add Entry</button>
+        <button class="btn-secondary" onclick="clearForm()">Clear</button>
+        <button class="btn-danger-outline" id="cancelEditBtn" onclick="cancelEdit()" style="display:none">Cancel Edit</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ LEDGER PANEL ============ -->
+<div class="panel" id="panel-ledger">
+  <div class="table-card">
+    <div class="table-toolbar">
+      <h2>&#128196; Stock Ledger</h2>
+      <div class="toolbar-right">
+        <input class="search-box" type="text" placeholder="Search model / company..." oninput="renderTable()"/>
+        <select class="filter-select" id="flt-company" onchange="renderTable()">
+          <option value="">All Companies</option>
+        </select>
+        <select class="filter-select" id="flt-inv" onchange="renderTable()">
+          <option value="">All INV Types</option><option>Inverter</option><option>Non-Inverter</option>
+        </select>
+        <select class="filter-select" id="flt-rep" onchange="renderTable()">
+          <option value="">All Reporting</option><option>Reporting</option><option>Non-Reporting</option>
+        </select>
+        <select class="filter-select" id="flt-star" onchange="renderTable()">
+          <option value="">All Stars</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
+        </select>
+        <button class="btn-excel" onclick="exportCSV()">&#128190; Export</button>
+        <button class="btn-secondary" onclick="window.print()">&#128438; Print</button>
+      </div>
+    </div>
+    <div class="cards-grid" id="ledgerCards"></div>
+    <div class="cards-footer">
+      <span id="tableCount">0 records</span>
+      <span id="tableNLC"></span>
+    </div>
+  </div>
+</div>
+
+<!-- ============ REPORTS PANEL ============ -->
+<div class="panel" id="panel-report">
+  <!-- Filter bar -->
+  <div class="rpt-filters">
+    <div class="form-group">
+      <label>From Date</label>
+      <input type="date" id="r-from" onchange="renderReport()"/>
+    </div>
+    <div class="form-group">
+      <label>To Date</label>
+      <input type="date" id="r-to" onchange="renderReport()"/>
+    </div>
+    <div class="form-group">
+      <label>Brand / Company</label>
+      <select id="r-company" onchange="renderReport()"><option value="">All Brands</option></select>
+    </div>
+    <div class="form-group">
+      <label>INV Type</label>
+      <select id="r-inv" onchange="renderReport()">
+        <option value="">All</option><option>Inverter</option><option>Non-Inverter</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Star</label>
+      <select id="r-star" onchange="renderReport()">
+        <option value="">All Stars</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
+      </select>
+    </div>
+    <button class="btn-primary" onclick="renderReport()">&#128202; Generate</button>
+    <button class="btn-secondary" onclick="clearReport()">Reset</button>
+    <button class="btn-excel" onclick="exportReport()">&#128190; Export</button>
+  </div>
+
+  <!-- Report Mode Tabs -->
+  <div class="rpt-mode-tabs">
+    <button class="rpt-mode-btn active" onclick="setRptMode('month')">&#128197; Month-wise</button>
+    <button class="rpt-mode-btn" onclick="setRptMode('date')">&#128197; Date-wise</button>
+    <button class="rpt-mode-btn" onclick="setRptMode('brand')">&#127970; Brand-wise</button>
+  </div>
+
+  <div id="reportOutput"></div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+<!-- CONFIRM MODAL -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal">
+    <h3>&#9888;&#65039; Confirm Delete</h3>
+    <p id="confirmMsg" style="color:#475569;font-size:13px;line-height:1.6"></p>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" style="background:#c62828" onclick="confirmDelete()">Yes, Delete</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== STATE ===== */
+let stock = JSON.parse(localStorage.getItem('acStock2')||'[]');
+let editId=null, deleteId=null;
+let invType='Inverter', repType='Reporting', selectedStar=0;
+let rptMode='month';
+
+/* ===== UTILS ===== */
+function save(){localStorage.setItem('acStock2',JSON.stringify(stock));}
+function toast(msg,ok=true){const t=document.getElementById('toast');t.textContent=msg;t.style.background=ok?'#0d47a1':'#c62828';t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
+function closeModal(){document.getElementById('confirmModal').classList.remove('open');}
+function fmtDate(d){if(!d)return'';const[y,m,dd]=d.split('-');return`${dd}-${m}-${y}`;}
+function monthName(m){return['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][m-1]||'';}
+function fy(d){return d?d.split('-')[0]:'';}
+function fm(d){return d?parseInt(d.split('-')[1]):0;}
+
+// Live date
+(function(){const n=new Date();document.getElementById('liveDate').textContent=n.toLocaleDateString('en-IN',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});})();
+document.getElementById('f-date').value=new Date().toISOString().split('T')[0];
+
+/* ===== TOGGLES ===== */
+function setInvType(t){invType=t;document.getElementById('btn-inv').classList.toggle('active',t==='Inverter');document.getElementById('btn-noninv').classList.toggle('active',t==='Non-Inverter');}
+function setRepType(t){repType=t;document.getElementById('btn-rep').classList.toggle('active',t==='Reporting');document.getElementById('btn-nonrep').classList.toggle('active',t==='Non-Reporting');}
+function setStar(n){selectedStar=n;document.querySelectorAll('.star-btn').forEach((b,i)=>b.classList.toggle('active',i<n));}
+
+/* ===== CLOSING QTY ===== */
+function computeClosing(){
+  const g={};
+  stock.forEach(e=>{const k=e.company+'||'+e.model+'||'+e.capacity;if(!g[k])g[k]=0;g[k]+=(e.type==='IN'?e.qty:-e.qty);e.closing=g[k];});
+}
+
+/* ===== FORM OPEN/CLOSE ===== */
+function toggleForm(){
+  const w=document.getElementById('formWrap'),b=document.getElementById('addProductBtn'),h=document.getElementById('formHint');
+  const isOpen=w.classList.contains('open');
+  if(isOpen){w.classList.remove('open');b.innerHTML='<span class="plus-icon">&#43;</span> Add Product';b.style.background='#0d47a1';h.textContent='Click to add a new stock entry';}
+  else{w.classList.add('open');b.innerHTML='<span class="plus-icon" style="font-size:18px">&#8722;</span> Close Form';b.style.background='#e65100';h.textContent='Fill in the details below and click Add Entry';setTimeout(()=>w.scrollIntoView({behavior:'smooth',block:'start'}),60);}
+}
+function closeForm(){
+  const w=document.getElementById('formWrap'),b=document.getElementById('addProductBtn'),h=document.getElementById('formHint');
+  w.classList.remove('open');b.innerHTML='<span class="plus-icon">&#43;</span> Add Product';b.style.background='#0d47a1';h.textContent='Click to add a new stock entry';
+}
+
+/* ===== ADD / EDIT ===== */
+function addEntry(){
+  const date=document.getElementById('f-date').value;
+  const company=document.getElementById('f-company').value.trim();
+  const model=document.getElementById('f-model').value.trim();
+  const capacity=document.getElementById('f-capacity').value.trim();
+  const qty=parseInt(document.getElementById('f-qty').value)||0;
+  const nlc=parseFloat(document.getElementById('f-nlc').value)||0;
+  const remarks=document.getElementById('f-remarks').value.trim();
+  if(!date){toast('Please select a date.',false);return;}
+  if(!company){toast('Enter company name.',false);return;}
+  if(!model){toast('Enter model number.',false);return;}
+  if(!qty||qty<1){toast('Quantity must be ≥ 1.',false);return;}
+  if(!nlc||nlc<=0){toast('Enter valid NLC amount.',false);return;}
+  if(!selectedStar){toast('Select star rating.',false);return;}
+  const entry={id:editId||Date.now(),date,type:'IN',company,model,capacity,star:selectedStar,invType,repType,qty,nlc,remarks,closing:0};
+  if(editId){const idx=stock.findIndex(e=>e.id===editId);if(idx>-1)stock[idx]=entry;editId=null;document.getElementById('addBtn').textContent='+ Add Entry';document.getElementById('cancelEditBtn').style.display='none';toast('Entry updated!');closeForm();}
+  else{stock.push(entry);toast('Entry added successfully!');closeForm();}
+  save();computeClosing();updateSummary();renderTable();updateCompanyFilters();renderDashboard();clearForm();
+}
+
+function clearForm(){
+  document.getElementById('f-date').value=new Date().toISOString().split('T')[0];
+  ['f-company','f-model','f-remarks'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-capacity').value='';
+  document.getElementById('f-qty').value=1;
+  document.getElementById('f-nlc').value='';
+  selectedStar=0;document.querySelectorAll('.star-btn').forEach(b=>b.classList.remove('active'));
+  setInvType('Inverter');setRepType('Reporting');
+}
+
+function editEntry(id){
+  const e=stock.find(x=>x.id===id);if(!e)return;
+  editId=id;
+  document.getElementById('f-date').value=e.date;document.getElementById('f-company').value=e.company;
+  document.getElementById('f-model').value=e.model;document.getElementById('f-capacity').value=e.capacity;
+  document.getElementById('f-qty').value=e.qty;document.getElementById('f-nlc').value=e.nlc;
+  document.getElementById('f-remarks').value=e.remarks||'';
+  setStar(e.star);setInvType(e.invType);setRepType(e.repType);
+  document.getElementById('addBtn').textContent='✓ Update Entry';
+  document.getElementById('cancelEditBtn').style.display='';
+  switchTab('entry');
+  const w=document.getElementById('formWrap'),b=document.getElementById('addProductBtn'),h=document.getElementById('formHint');
+  w.classList.add('open');b.innerHTML='<span class="plus-icon" style="font-size:18px">&#8722;</span> Close Form';b.style.background='#e65100';h.textContent='Edit mode — update and click Update Entry';
+  setTimeout(()=>w.scrollIntoView({behavior:'smooth',block:'start'}),60);
+  toast('Edit mode active.');
+}
+
+function cancelEdit(){editId=null;document.getElementById('addBtn').textContent='+ Add Entry';document.getElementById('cancelEditBtn').style.display='none';clearForm();closeForm();}
+
+/* ===== SUMMARY (entry tab) ===== */
+function updateSummary(){
+  computeClosing();
+  const tIn=stock.filter(e=>e.type==='IN').reduce((s,e)=>s+e.qty,0);
+  const tOut=stock.filter(e=>e.type==='OUT').reduce((s,e)=>s+e.qty,0);
+  const companies=[...new Set(stock.map(e=>e.company))].length;
+  document.getElementById('summaryCards').innerHTML=`
+    <div class="sum-card"><div class="sum-label">Total Stock In</div><div class="sum-val">${tIn}</div><div class="sum-sub">Units received</div></div>
+    <div class="sum-card orange"><div class="sum-label">Total Stock Out</div><div class="sum-val">${tOut}</div><div class="sum-sub">Units dispatched</div></div>
+    <div class="sum-card green"><div class="sum-label">Closing Stock</div><div class="sum-val">${tIn-tOut}</div><div class="sum-sub">Current balance</div></div>
+    <div class="sum-card purple"><div class="sum-label">Companies</div><div class="sum-val">${companies}</div><div class="sum-sub">Brands tracked</div></div>
+    <div class="sum-card"><div class="sum-label">Total Entries</div><div class="sum-val">${stock.length}</div><div class="sum-sub">All records</div></div>
+  `;
+}
+
+/* ===== COMPANY FILTERS ===== */
+function updateCompanyFilters(){
+  const companies=[...new Set(stock.map(e=>e.company))].sort();
+  ['flt-company','r-company'].forEach(id=>{
+    const sel=document.getElementById(id);if(!sel)return;
+    const cur=sel.value;sel.innerHTML=id==='flt-company'?'<option value="">All Companies</option>':'<option value="">All Brands</option>';
+    companies.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;sel.appendChild(o);});
+    sel.value=cur;
+  });
+  // Year selector for dashboard
+  const years=[...new Set(stock.map(e=>fy(e.date)).filter(Boolean))].sort().reverse();
+  const ysel=document.getElementById('dash-year');
+  const curY=ysel.value;ysel.innerHTML='';
+  years.forEach(y=>{const o=document.createElement('option');o.value=y;o.textContent=y;ysel.appendChild(o);});
+  if(curY&&years.includes(curY))ysel.value=curY;
+}
+
+/* ===== SELL STOCK (from card) ===== */
+function sellStock(key){
+  const inp=document.getElementById('sell-qty-'+key);
+  const qty=parseInt(inp.value)||0;
+  if(qty<1){toast('Enter quantity to sell.',false);return;}
+  // find the product group
+  const grp=stock.filter(e=>e.company+'||'+e.model+'||'+e.capacity===key);
+  const balance=grp.reduce((s,e)=>s+(e.type==='IN'?e.qty:-e.qty),0);
+  if(qty>balance){toast(`Only ${balance} unit${balance>1?'s':''} available!`,false);return;}
+  // use first IN entry as template for product info
+  const ref=grp.find(e=>e.type==='IN');
+  const outEntry={
+    id:Date.now(),date:new Date().toISOString().split('T')[0],
+    type:'OUT',company:ref.company,model:ref.model,capacity:ref.capacity,
+    star:ref.star,invType:ref.invType,repType:ref.repType,
+    qty,nlc:ref.nlc,remarks:'Sale',closing:0
+  };
+  stock.push(outEntry);
+  inp.value=1;
+  save();computeClosing();updateSummary();renderTable();updateCompanyFilters();renderDashboard();
+  toast(`✔ ${qty} unit${qty>1?'s':''} sold — ${ref.company} ${ref.model}`);
+}
+
+/* ===== LEDGER — PRODUCT CARD VIEW ===== */
+function renderTable(){
+  computeClosing();
+  const search=(document.querySelector('.search-box')||{value:''}).value.toLowerCase();
+  const fcomp=document.getElementById('flt-company').value;
+  const finv=document.getElementById('flt-inv').value;
+  const frep=document.getElementById('flt-rep').value;
+  const fstar=document.getElementById('flt-star').value;
+
+  // Build product groups (key = company||model||capacity)
+  const groups={};
+  stock.forEach(e=>{
+    const k=e.company+'||'+e.model+'||'+e.capacity;
+    if(!groups[k]){
+      groups[k]={key:k,company:e.company,model:e.model,capacity:e.capacity,
+        star:e.star,invType:e.invType,repType:e.repType,nlc:e.nlc,
+        totalIn:0,totalOut:0,firstDate:e.date,lastDate:e.date,remarks:e.remarks||''};
+    }
+    if(e.type==='IN'){groups[k].totalIn+=e.qty;groups[k].nlc=e.nlc;}
+    else groups[k].totalOut+=e.qty;
+    if(e.date<groups[k].firstDate)groups[k].firstDate=e.date;
+    if(e.date>groups[k].lastDate)groups[k].lastDate=e.date;
+  });
+
+  let products=Object.values(groups);
+
+  // Apply filters
+  if(search)products=products.filter(p=>(p.model+p.company).toLowerCase().includes(search));
+  if(fcomp)products=products.filter(p=>p.company===fcomp);
+  if(finv)products=products.filter(p=>p.invType===finv);
+  if(frep)products=products.filter(p=>p.repType===frep);
+  if(fstar)products=products.filter(p=>p.star===parseInt(fstar));
+  products.sort((a,b)=>a.company.localeCompare(b.company));
+
+  const container=document.getElementById('ledgerCards');
+  if(!products.length){
+    container.innerHTML=`<div class="empty-cards"><div class="ei">📦</div><div>No products found.</div></div>`;
+    document.getElementById('tableCount').textContent='0 products';
+    document.getElementById('tableNLC').textContent='';return;
+  }
+
+  container.innerHTML=products.map((p,i)=>{
+    const balance=p.totalIn-p.totalOut;
+    const outPct=p.totalIn>0?Math.round(p.totalOut/p.totalIn*100):0;
+    const balColor=balance>5?'#166534':balance>0?'#854d0e':'#9a3412';
+    const balBg=balance>5?'#dcfce7':balance>0?'#fef9c3':'#ffedd5';
+    const safeSellKey=p.key.replace(/'/g,"\\'");
+    const inputId='sell-qty-'+p.key;
+    const stars='★'.repeat(p.star)+'<span style="color:#e2e8f0">'+'★'.repeat(5-p.star)+'</span>';
+    const invBadge=`<span class="badge ${p.invType==='Inverter'?'badge-inv':'badge-noninv'}">${p.invType==='Inverter'?'⚡ Inverter':'🔌 Non-Inv'}</span>`;
+    const repBadge=`<span class="badge ${p.repType==='Reporting'?'badge-rep':'badge-nonrep'}">${p.repType==='Reporting'?'✔ Rpt':'✘ Non-Rpt'}</span>`;
+    // progress bar: sold %
+    return`<div class="product-card${balance<=0?' stock-out':''}">
+      <div class="pc-header">
+        <span class="pc-sl">#${i+1}</span>
+        <span style="display:flex;gap:5px">${invBadge}${repBadge}</span>
+      </div>
+      <div class="pc-brand">
+        <div class="pc-company">❄ ${p.company}</div>
+        <div class="pc-model">${p.model}</div>
+      </div>
+      <div class="pc-stars">${stars}</div>
+      <div class="pc-divider"></div>
+      <div class="pc-details">
+        <div class="pc-detail">
+          <span class="pc-detail-label">Capacity</span>
+          <span class="pc-detail-val">🌡 ${p.capacity||'—'}</span>
+        </div>
+        <div class="pc-detail">
+          <span class="pc-detail-label">Added</span>
+          <span class="pc-detail-val" style="font-size:11px">${fmtDate(p.firstDate)}</span>
+        </div>
+        <div class="pc-detail">
+          <span class="pc-detail-label">Stock IN</span>
+          <span class="pc-detail-val" style="color:#166534">+${p.totalIn} units</span>
+        </div>
+        <div class="pc-detail">
+          <span class="pc-detail-label">Sold OUT</span>
+          <span class="pc-detail-val" style="color:#9a3412">−${p.totalOut} units</span>
+        </div>
+      </div>
+      <!-- Progress bar -->
+      <div style="padding:0 14px 8px">
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:#94a3b8;margin-bottom:3px">
+          <span>Sold ${outPct}%</span><span>Remaining ${100-outPct}%</span>
+        </div>
+        <div style="background:#f1f5f9;border-radius:6px;height:8px;overflow:hidden">
+          <div style="height:100%;width:${outPct}%;background:linear-gradient(90deg,#e65100,#ff8a65);border-radius:6px;transition:width .5s"></div>
+        </div>
+      </div>
+      <!-- NLC + Balance -->
+      <div class="pc-nlc-row">
+        <div>
+          <div class="pc-nlc-label">NLC — Net Landing Cost</div>
+          <div class="pc-nlc-val">₹${p.nlc.toLocaleString('en-IN',{minimumFractionDigits:2})}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:9px;color:#94a3b8;font-weight:700;margin-bottom:4px">BALANCE STOCK</div>
+          <span style="font-size:24px;font-weight:900;color:${balColor};background:${balBg};padding:2px 14px;border-radius:10px">${balance}</span>
+        </div>
+      </div>
+      <!-- Sell panel -->
+      ${balance>0?`<div class="pc-sell-panel">
+        <span class="pc-sell-label">🛒 Sell:</span>
+        <input class="pc-sell-input" type="number" id="${inputId}" min="1" max="${balance}" value="1" placeholder="Qty"/>
+        <button class="btn-sell" onclick="sellStock('${safeSellKey}')">Confirm Sale</button>
+        <span style="font-size:11px;color:#92400e;margin-left:auto">Max: ${balance}</span>
+      </div>`:`<div style="padding:8px 14px;text-align:center;font-size:12px;color:#9a3412;font-weight:700;background:#ffedd5">⚠ Out of Stock</div>`}
+      ${p.remarks?`<div class="pc-remarks">💬 ${p.remarks}</div>`:''}
+      <div class="pc-footer">
+        <span class="pc-date">📅 Last: ${fmtDate(p.lastDate)}</span>
+        <button class="btn-edit" onclick="editProductEntries('${safeSellKey}')">📋 History</button>
+        <button class="btn-del" onclick="deleteProduct('${safeSellKey}')">🗑 Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('tableCount').textContent=`${products.length} product${products.length>1?'s':''}`;
+  const totalNlc=products.reduce((s,p)=>s+p.nlc,0)/products.length;
+  document.getElementById('tableNLC').textContent=`Avg NLC: ₹${totalNlc.toLocaleString('en-IN',{minimumFractionDigits:2})}`;
+}
+
+/* Delete all entries for a product */
+function deleteProduct(key){
+  const grp=stock.filter(e=>e.company+'||'+e.model+'||'+e.capacity===key);
+  if(!grp.length)return;
+  deleteId=key;
+  document.getElementById('confirmMsg').textContent=`Delete ALL entries for ${grp[0].company} — ${grp[0].model}? (${grp.length} record${grp.length>1?'s':''})`;
+  document.getElementById('confirmModal').classList.add('open');
+}
+function confirmDelete(){
+  if(typeof deleteId==='string'&&deleteId.includes('||')){
+    stock=stock.filter(e=>e.company+'||'+e.model+'||'+e.capacity!==deleteId);
+  } else {
+    stock=stock.filter(e=>e.id!==deleteId);
+  }
+  save();computeClosing();updateSummary();renderTable();updateCompanyFilters();renderDashboard();closeModal();toast('Deleted.');deleteId=null;
+}
+
+/* Show history modal for a product */
+function editProductEntries(key){
+  const grp=stock.filter(e=>e.company+'||'+e.model+'||'+e.capacity===key);
+  if(!grp.length)return;
+  const p=grp[0];
+  let html=`<b>${p.company} — ${p.model}</b><br><br>`;
+  html+=`<table style="width:100%;border-collapse:collapse;font-size:12px">`;
+  html+=`<tr style="background:#f0f6ff"><th style="padding:5px 8px;text-align:left">Date</th><th>Type</th><th>Qty</th><th>NLC</th><th></th></tr>`;
+  grp.sort((a,b)=>a.date.localeCompare(b.date)).forEach(e=>{
+    html+=`<tr style="border-bottom:1px solid #f1f5f9">
+      <td style="padding:5px 8px">${fmtDate(e.date)}</td>
+      <td><span class="badge ${e.type==='IN'?'badge-in':'badge-out'}">${e.type==='IN'?'▲ IN':'▼ OUT'}</span></td>
+      <td style="text-align:center;font-weight:700">${e.qty}</td>
+      <td>₹${e.nlc.toLocaleString('en-IN',{minimumFractionDigits:2})}</td>
+      <td><button class="btn-del" style="padding:2px 7px" onclick="deleteEntry(${e.id})">✕</button></td>
+    </tr>`;
+  });
+  html+=`</table>`;
+  document.getElementById('confirmMsg').innerHTML=html;
+  // hijack modal for history view — add a close-only button
+  document.querySelector('#confirmModal .modal-actions').innerHTML=`<button class="btn-secondary" onclick="closeModal()">Close</button>`;
+  document.querySelector('#confirmModal h3').textContent='📋 Stock History';
+  document.getElementById('confirmModal').classList.add('open');
+}
+
+/* Individual entry delete (from history modal) */
+function deleteEntry(id){
+  stock=stock.filter(e=>e.id!==id);
+  save();computeClosing();updateSummary();renderTable();updateCompanyFilters();renderDashboard();
+  closeModal();
+  // restore modal
+  document.querySelector('#confirmModal .modal-actions').innerHTML=`<button class="btn-secondary" onclick="closeModal()">Cancel</button><button class="btn-primary" style="background:#c62828" onclick="confirmDelete()">Yes, Delete</button>`;
+  document.querySelector('#confirmModal h3').textContent='⚠️ Confirm Delete';
+  toast('Entry removed.');
+}
+
+/* ===== DASHBOARD ===== */
+function renderDashboard(){
+  computeClosing();
+  const tIn=stock.filter(e=>e.type==='IN').reduce((s,e)=>s+e.qty,0);
+  const tOut=stock.filter(e=>e.type==='OUT').reduce((s,e)=>s+e.qty,0);
+  const closing=tIn-tOut;
+  const invIn=stock.filter(e=>e.type==='IN'&&e.invType==='Inverter').reduce((s,e)=>s+e.qty,0);
+  const brands=[...new Set(stock.map(e=>e.company))].length;
+  const curMonth=new Date().getMonth()+1;
+  const curYear=new Date().getFullYear().toString();
+  const mthIn=stock.filter(e=>e.type==='IN'&&fy(e.date)===curYear&&fm(e.date)===curMonth).reduce((s,e)=>s+e.qty,0);
+  const mthOut=stock.filter(e=>e.type==='OUT'&&fy(e.date)===curYear&&fm(e.date)===curMonth).reduce((s,e)=>s+e.qty,0);
+
+  // KPI
+  document.getElementById('kpiCards').innerHTML=`
+    <div class="kpi"><div class="kpi-label">Total Stock In</div><div class="kpi-val">${tIn}</div><div class="kpi-sub">All time units received</div><div class="kpi-icon">&#9660;</div></div>
+    <div class="kpi orange"><div class="kpi-label">Total Stock Out</div><div class="kpi-val">${tOut}</div><div class="kpi-sub">All time units dispatched</div><div class="kpi-icon">&#9650;</div></div>
+    <div class="kpi green"><div class="kpi-label">Closing Stock</div><div class="kpi-val">${closing}</div><div class="kpi-sub">Current balance</div><div class="kpi-icon">&#128230;</div></div>
+    <div class="kpi teal"><div class="kpi-label">Inverter Units</div><div class="kpi-val">${invIn}</div><div class="kpi-sub">Stock IN entries</div><div class="kpi-icon">&#9889;</div></div>
+    <div class="kpi purple"><div class="kpi-label">Brands</div><div class="kpi-val">${brands}</div><div class="kpi-sub">Companies tracked</div><div class="kpi-icon">&#127970;</div></div>
+    <div class="kpi gold"><div class="kpi-label">This Month IN</div><div class="kpi-val">${mthIn}</div><div class="kpi-sub">OUT: ${mthOut} units</div><div class="kpi-icon">&#128197;</div></div>
+    <div class="kpi red"><div class="kpi-label">Total Entries</div><div class="kpi-val">${stock.length}</div><div class="kpi-sub">All records</div><div class="kpi-icon">&#128196;</div></div>
+  `;
+
+  // Year selector
+  const years=[...new Set(stock.map(e=>fy(e.date)).filter(Boolean))].sort().reverse();
+  const ysel=document.getElementById('dash-year');
+  const selYear=ysel.value||curYear||years[0]||curYear;
+  if(!ysel.value){ysel.innerHTML='';years.forEach(y=>{const o=document.createElement('option');o.value=y;o.textContent=y;ysel.appendChild(o);});ysel.value=selYear;}
+
+  // MONTH CHART
+  const months=Array.from({length:12},(_,i)=>i+1);
+  const mdata=months.map(m=>({
+    m,lbl:monthName(m),
+    in:stock.filter(e=>e.type==='IN'&&fy(e.date)===selYear&&fm(e.date)===m).reduce((s,e)=>s+e.qty,0),
+    out:stock.filter(e=>e.type==='OUT'&&fy(e.date)===selYear&&fm(e.date)===m).reduce((s,e)=>s+e.qty,0)
+  }));
+  const maxM=Math.max(...mdata.map(d=>Math.max(d.in,d.out)),1);
+  document.getElementById('monthChart').innerHTML=`<div class="bar-chart">${mdata.map(d=>`
+    <div class="bar-row">
+      <div class="bar-label">${d.lbl}</div>
+      <div style="flex:1;display:flex;flex-direction:column;gap:2px">
+        <div class="bar-track"><div class="bar-fill in" style="width:${(d.in/maxM*100).toFixed(1)}%">${d.in>0?d.in:''}</div></div>
+        <div class="bar-track" style="height:14px"><div class="bar-fill out" style="width:${(d.out/maxM*100).toFixed(1)}%">${d.out>0?d.out:''}</div></div>
+      </div>
+      <div style="font-size:10px;color:#94a3b8;width:28px;text-align:right">${d.in+d.out||''}</div>
+    </div>`).join('')}
+    <div style="display:flex;gap:12px;margin-top:6px;font-size:11px">
+      <span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:8px;border-radius:2px;background:#1976d2;display:inline-block"></span>IN</span>
+      <span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:8px;border-radius:2px;background:#e65100;display:inline-block"></span>OUT</span>
+    </div>
+  </div>`;
+
+  // BRAND CHART
+  const brandMap={};
+  stock.forEach(e=>{if(!brandMap[e.company])brandMap[e.company]={in:0,out:0};if(e.type==='IN')brandMap[e.company].in+=e.qty;else brandMap[e.company].out+=e.qty;});
+  const brandArr=Object.entries(brandMap).sort((a,b)=>(b[1].in+b[1].out)-(a[1].in+a[1].out)).slice(0,10);
+  const maxB=Math.max(...brandArr.map(([,v])=>Math.max(v.in,v.out)),1);
+  document.getElementById('brandChart').innerHTML=brandArr.length?`<div class="bar-chart">${brandArr.map(([name,v])=>`
+    <div class="bar-row">
+      <div class="bar-label" title="${name}">${name}</div>
+      <div style="flex:1;display:flex;flex-direction:column;gap:2px">
+        <div class="bar-track"><div class="bar-fill in" style="width:${(v.in/maxB*100).toFixed(1)}%">${v.in>0?v.in:''}</div></div>
+        <div class="bar-track" style="height:14px"><div class="bar-fill out" style="width:${(v.out/maxB*100).toFixed(1)}%">${v.out>0?v.out:''}</div></div>
+      </div>
+      <div style="font-size:10px;color:#94a3b8;width:28px;text-align:right">${v.in+v.out}</div>
+    </div>`).join('')}</div>`:'<div class="empty-state" style="padding:24px"><div class="ei">&#128247;</div>No data yet.</div>';
+
+  // DONUTS
+  function donut(data,colors){
+    const total=data.reduce((s,d)=>s+d.v,0);if(!total)return'<span style="color:#94a3b8;font-size:12px">No data</span>';
+    let offset=25,r=35,cx=50,cy=50,circum=2*Math.PI*r;
+    const segs=data.map(d=>{const dash=(d.v/total)*circum;const seg=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${d.c}" stroke-width="14" stroke-dasharray="${dash.toFixed(2)} ${(circum-dash).toFixed(2)}" stroke-dashoffset="${-offset.toFixed(2)}" style="transition:stroke-dasharray .6s"/>`;offset+=dash;return seg;});
+    const svg=`<svg class="donut-svg" viewBox="0 0 100 100" width="100" height="100"><circle cx="50" cy="50" r="35" fill="none" stroke="#f1f5f9" stroke-width="14"/>${segs.join('')}<text x="50" y="54" text-anchor="middle" font-size="13" font-weight="800" fill="#1a2332">${total}</text></svg>`;
+    const legend=`<div class="donut-legend">${data.map(d=>`<div class="legend-item"><div class="legend-dot" style="background:${d.c}"></div><span>${d.lbl}: <b>${d.v}</b> <span style="color:#94a3b8;font-size:11px">(${total?(d.v/total*100).toFixed(0):0}%)</span></span></div>`).join('')}</div>`;
+    return svg+legend;
+  }
+  const invUnits=stock.filter(e=>e.type==='IN'&&e.invType==='Inverter').reduce((s,e)=>s+e.qty,0);
+  const ninvUnits=stock.filter(e=>e.type==='IN'&&e.invType==='Non-Inverter').reduce((s,e)=>s+e.qty,0);
+  document.getElementById('invDonut').innerHTML=donut([{lbl:'Inverter',v:invUnits,c:'#1976d2'},{lbl:'Non-Inv',v:ninvUnits,c:'#e91e8c'}],['#1976d2','#e91e8c']);
+  const starData=[5,4,3,2,1].map(s=>({lbl:`${s}★`,v:stock.filter(e=>e.type==='IN'&&e.star===s).reduce((a,e)=>a+e.qty,0),c:['#f59e0b','#22c55e','#3b82f6','#a855f7','#ef4444'][5-s]}));
+  document.getElementById('starDonut').innerHTML=donut(starData.filter(d=>d.v>0),[]);
+  const repUnits=stock.filter(e=>e.type==='IN'&&e.repType==='Reporting').reduce((s,e)=>s+e.qty,0);
+  const nrepUnits=stock.filter(e=>e.type==='IN'&&e.repType==='Non-Reporting').reduce((s,e)=>s+e.qty,0);
+  document.getElementById('repDonut').innerHTML=donut([{lbl:'Reporting',v:repUnits,c:'#22c55e'},{lbl:'Non-Rpt',v:nrepUnits,c:'#f97316'}],[]);
+
+  // TOP BRANDS TABLE
+  const topArr=Object.entries(brandMap).sort((a,b)=>b[1].in-a[1].in).slice(0,8);
+  document.getElementById('topBrandsTable').innerHTML=topArr.length?`<table class="mini-table">
+    <thead><tr><th>#</th><th>Brand</th><th style="text-align:center">IN</th><th style="text-align:center">OUT</th><th style="text-align:center">Closing</th></tr></thead>
+    <tbody>${topArr.map(([n,v],i)=>`<tr><td style="color:#94a3b8">${i+1}</td><td><b>${n}</b></td><td style="text-align:center;color:#166534;font-weight:700">${v.in}</td><td style="text-align:center;color:#9a3412;font-weight:700">${v.out}</td><td style="text-align:center;font-weight:800">${v.in-v.out}</td></tr>`).join('')}</tbody>
+  </table>`:'<div class="empty-state" style="padding:24px"><div class="ei">&#127970;</div>No data.</div>';
+
+  // RECENT 8
+  const recent=[...stock].sort((a,b)=>b.id-a.id).slice(0,8);
+  document.getElementById('recentTable').innerHTML=recent.length?`<table class="mini-table">
+    <thead><tr><th>Date</th><th>Brand</th><th>Model</th><th style="text-align:center">Type</th><th style="text-align:center">Qty</th></tr></thead>
+    <tbody>${recent.map(e=>`<tr><td>${fmtDate(e.date)}</td><td>${e.company}</td><td style="font-family:monospace;font-size:11px">${e.model}</td><td style="text-align:center"><span class="badge ${e.type==='IN'?'badge-in':'badge-out'}" style="font-size:10px">${e.type}</span></td><td style="text-align:center;font-weight:700">${e.qty}</td></tr>`).join('')}</tbody>
+  </table>`:'<div class="empty-state" style="padding:24px"><div class="ei">&#128337;</div>No entries yet.</div>';
+}
+
+/* ===== REPORTS ===== */
+function setRptMode(m){
+  rptMode=m;
+  document.querySelectorAll('.rpt-mode-btn').forEach((b,i)=>b.classList.toggle('active',['month','date','brand'][i]===m));
+  renderReport();
+}
+
+function getFilteredData(){
+  const from=document.getElementById('r-from').value;
+  const to=document.getElementById('r-to').value;
+  const rcomp=document.getElementById('r-company').value;
+  const rinv=document.getElementById('r-inv').value;
+  const rstar=document.getElementById('r-star').value;
+  let data=[...stock];
+  if(from)data=data.filter(e=>e.date>=from);
+  if(to)data=data.filter(e=>e.date<=to);
+  if(rcomp)data=data.filter(e=>e.company===rcomp);
+  if(rinv)data=data.filter(e=>e.invType===rinv);
+  if(rstar)data=data.filter(e=>e.star===parseInt(rstar));
+  return data;
+}
+
+function renderReport(){
+  const data=getFilteredData();
+  const out=document.getElementById('reportOutput');
+  if(!data.length){out.innerHTML='<div class="empty-state" style="background:#fff;border-radius:12px;padding:48px"><div class="ei">&#128202;</div>No data for selected filters.</div>';return;}
+
+  if(rptMode==='month') renderMonthReport(data,out);
+  else if(rptMode==='date') renderDateReport(data,out);
+  else renderBrandReport(data,out);
+}
+
+function renderMonthReport(data,out){
+  // Group by YYYY-MM
+  const groups={};
+  data.forEach(e=>{
+    const key=fy(e.date)+'-'+(fm(e.date)<10?'0':'')+fm(e.date);
+    if(!groups[key])groups[key]={label:monthName(fm(e.date))+' '+fy(e.date),in:0,out:0,nlcs:[],entries:0};
+    if(e.type==='IN'){groups[key].in+=e.qty;groups[key].nlcs.push(e.nlc);}
+    else groups[key].out+=e.qty;
+    groups[key].entries++;
+  });
+  const keys=Object.keys(groups).sort();
+  const totIn=data.filter(e=>e.type==='IN').reduce((s,e)=>s+e.qty,0);
+  const totOut=data.filter(e=>e.type==='OUT').reduce((s,e)=>s+e.qty,0);
+  const avgNlc=data.filter(e=>e.type==='IN').length?data.filter(e=>e.type==='IN').reduce((s,e)=>s+e.nlc,0)/data.filter(e=>e.type==='IN').length:0;
+  out.innerHTML=`<div class="rpt-section">
+    <div class="rpt-section-hdr">&#128197; Month-wise Stock Report</div>
+    <table class="rpt-table">
+      <thead><tr><th>Month</th><th>Stock IN</th><th>Stock OUT (Sale)</th><th>Closing</th><th>Avg NLC (&#8377;)</th><th>Entries</th></tr></thead>
+      <tbody>
+        ${keys.map(k=>{const g=groups[k];const avg=g.nlcs.length?(g.nlcs.reduce((a,b)=>a+b,0)/g.nlcs.length):0;return`<tr>
+          <td><b>${g.label}</b></td>
+          <td style="color:#166534;font-weight:700">${g.in}</td>
+          <td style="color:#9a3412;font-weight:700">${g.out}</td>
+          <td><b>${g.in-g.out}</b></td>
+          <td class="nlc-val">${avg?'&#8377;'+avg.toLocaleString('en-IN',{minimumFractionDigits:2}):'—'}</td>
+          <td style="color:#64748b">${g.entries}</td>
+        </tr>`;}).join('')}
+        <tr class="rpt-total"><td>TOTAL</td><td style="color:#166534">${totIn}</td><td style="color:#9a3412">${totOut}</td><td><b>${totIn-totOut}</b></td><td class="nlc-val">${avgNlc?'&#8377;'+avgNlc.toLocaleString('en-IN',{minimumFractionDigits:2}):'—'}</td><td>${data.length}</td></tr>
+      </tbody>
+    </table>
+  </div>`;
+}
+
+function renderDateReport(data,out){
+  const groups={};
+  data.forEach(e=>{
+    if(!groups[e.date])groups[e.date]={in:0,out:0,nlcs:[],entries:0};
+    if(e.type==='IN'){groups[e.date].in+=e.qty;groups[e.date].nlcs.push(e.nlc);}
+    else groups[e.date].out+=e.qty;
+    groups[e.date].entries++;
+  });
+  const keys=Object.keys(groups).sort();
+  const totIn=data.filter(e=>e.type==='IN').reduce((s,e)=>s+e.qty,0);
+  const totOut=data.filter(e=>e.type==='OUT').reduce((s,e)=>s+e.qty,0);
+  out.innerHTML=`<div class="rpt-section">
+    <div class="rpt-section-hdr">&#128197; Date-wise Stock Report</div>
+    <table class="rpt-table">
+      <thead><tr><th>Date</th><th>Stock IN</th><th>Stock OUT (Sale)</th><th>Closing</th><th>Avg NLC (&#8377;)</th><th>Entries</th></tr></thead>
+      <tbody>
+        ${keys.map(k=>{const g=groups[k];const avg=g.nlcs.length?(g.nlcs.reduce((a,b)=>a+b,0)/g.nlcs.length):0;return`<tr>
+          <td><b>${fmtDate(k)}</b></td>
+          <td style="color:#166534;font-weight:700">${g.in}</td>
+          <td style="color:#9a3412;font-weight:700">${g.out}</td>
+          <td><b>${g.in-g.out}</b></td>
+          <td class="nlc-val">${avg?'&#8377;'+avg.toLocaleString('en-IN',{minimumFractionDigits:2}):'—'}</td>
+          <td style="color:#64748b">${g.entries}</td>
+        </tr>`;}).join('')}
+        <tr class="rpt-total"><td>TOTAL</td><td style="color:#166534">${totIn}</td><td style="color:#9a3412">${totOut}</td><td><b>${totIn-totOut}</b></td><td>—</td><td>${data.length}</td></tr>
+      </tbody>
+    </table>
+  </div>`;
+}
+
+function renderBrandReport(data,out){
+  const groups={};
+  data.forEach(e=>{
+    if(!groups[e.company])groups[e.company]={in:0,out:0,nlcs:[],models:new Set(),entries:0};
+    if(e.type==='IN'){groups[e.company].in+=e.qty;groups[e.company].nlcs.push(e.nlc);}
+    else groups[e.company].out+=e.qty;
+    groups[e.company].models.add(e.model);
+    groups[e.company].entries++;
+  });
+  const sorted=Object.entries(groups).sort((a,b)=>b[1].in-a[1].in);
+  const totIn=data.filter(e=>e.type==='IN').reduce((s,e)=>s+e.qty,0);
+  const totOut=data.filter(e=>e.type==='OUT').reduce((s,e)=>s+e.qty,0);
+  out.innerHTML=`<div class="rpt-section">
+    <div class="rpt-section-hdr">&#127970; Brand-wise Stock Report</div>
+    <table class="rpt-table">
+      <thead><tr><th>#</th><th>Brand</th><th>Stock IN</th><th>Stock OUT (Sale)</th><th>Closing</th><th>Avg NLC (&#8377;)</th><th>Models</th><th>Entries</th></tr></thead>
+      <tbody>
+        ${sorted.map(([name,g],i)=>{const avg=g.nlcs.length?(g.nlcs.reduce((a,b)=>a+b,0)/g.nlcs.length):0;return`<tr>
+          <td style="color:#94a3b8">${i+1}</td>
+          <td><b>${name}</b></td>
+          <td style="color:#166534;font-weight:700">${g.in}</td>
+          <td style="color:#9a3412;font-weight:700">${g.out}</td>
+          <td><b>${g.in-g.out}</b></td>
+          <td class="nlc-val">${avg?'&#8377;'+avg.toLocaleString('en-IN',{minimumFractionDigits:2}):'—'}</td>
+          <td style="color:#64748b">${g.models.size}</td>
+          <td style="color:#64748b">${g.entries}</td>
+        </tr>`;}).join('')}
+        <tr class="rpt-total"><td colspan="2">TOTAL</td><td style="color:#166534">${totIn}</td><td style="color:#9a3412">${totOut}</td><td><b>${totIn-totOut}</b></td><td>—</td><td>${[...new Set(data.map(e=>e.model))].length}</td><td>${data.length}</td></tr>
+      </tbody>
+    </table>
+  </div>`;
+}
+
+function clearReport(){
+  ['r-from','r-to'].forEach(id=>document.getElementById(id).value='');
+  ['r-company','r-inv','r-star'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('reportOutput').innerHTML='';
+}
+
+function exportReport(){
+  const data=getFilteredData();
+  if(!data.length){toast('No data to export.',false);return;}
+  const rows=data.sort((a,b)=>a.date.localeCompare(b.date)).map((e,i)=>[i+1,fmtDate(e.date),e.type==='IN'?'STOCK IN':'STOCK OUT',e.company,e.model,e.capacity,e.star+' Star',e.invType,e.repType,e.qty,e.nlc,e.remarks||'']);
+  const hdr=['SL','Date','Type','Company','Model','Capacity','Star','INV Type','Reporting','Qty','NLC (Rs.)','Remarks'];
+  const csv=[hdr,...rows].map(r=>r.map(c=>`"${c}"`).join(',')).join('\n');
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);a.download='AC_Report.csv';a.click();
+  toast('Report exported!');
+}
+
+/* ===== LEDGER EXPORT ===== */
+function exportCSV(){
+  if(!stock.length){toast('No data to export.',false);return;}
+  computeClosing();
+  const rows=stock.map((e,i)=>[i+1,fmtDate(e.date),e.type==='IN'?'STOCK IN':'STOCK OUT',e.company,e.model,e.capacity,e.star+' Star',e.invType,e.repType,e.qty,e.nlc,e.closing,e.remarks||'']);
+  const hdr=['SL','Date','Type','Company','Model','Capacity','Star','INV Type','Reporting','Qty','NLC (Rs.)','Closing Qty','Remarks'];
+  const csv=[hdr,...rows].map(r=>r.map(c=>`"${c}"`).join(',')).join('\n');
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);a.download='AC_Stock_Ledger.csv';a.click();
+  toast('Ledger exported!');
+}
+
+/* ===== TABS ===== */
+function switchTab(t){
+  const tabs=['dashboard','entry','ledger','report'];
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',tabs[i]===t));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+t).classList.add('active');
+  if(t==='dashboard')renderDashboard();
+  if(t==='ledger')renderTable();
+  if(t==='report')renderReport();
+  if(t==='entry')updateSummary();
+}
+
+/* ===== INIT ===== */
+computeClosing();updateCompanyFilters();renderDashboard();
+</script>
+</body>
+</html>
