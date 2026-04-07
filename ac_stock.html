@@ -6,7 +6,7 @@
 <title>AC Stock Maintain — NLC Register</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Arial,sans-serif;background:#eef2f7;color:#1a2332;font-size:14px}
+body{font-family:'Segoe UI',Arial,sans-serif;background:linear-gradient(135deg,#e8f0fe 0%,#eef2f7 50%,#f0fdf4 100%);background-attachment:fixed;color:#1a2332;font-size:14px}
 
 /* HEADER */
 .app-header{background:linear-gradient(135deg,#0d47a1,#1976d2);color:#fff;padding:0;position:sticky;top:0;z-index:50;box-shadow:0 2px 8px rgba(0,0,0,.18)}
@@ -29,50 +29,54 @@ body{font-family:Arial,sans-serif;background:#eef2f7;color:#1a2332;font-size:14p
 
 /*==== DASHBOARD ====*/
 /* KPI CARDS */
-.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:22px}
-.kpi{background:#fff;border-radius:12px;padding:16px 18px;box-shadow:0 2px 8px rgba(0,0,0,.07);border-top:4px solid #1976d2;position:relative;overflow:hidden}
-.kpi.green{border-top-color:#2e7d32}.kpi.orange{border-top-color:#e65100}.kpi.purple{border-top-color:#6a1b9a}.kpi.teal{border-top-color:#00695c}.kpi.red{border-top-color:#c62828}.kpi.gold{border-top-color:#f57f17}
-.kpi-label{font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;font-weight:700}
-.kpi-val{font-size:28px;font-weight:800;color:#1a2332;line-height:1}
-.kpi-sub{font-size:11px;color:#94a3b8;margin-top:4px}
-.kpi-icon{position:absolute;right:14px;top:14px;font-size:22px;opacity:.15}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:26px}
+.kpi{background:#fff;border-radius:18px;padding:20px 20px 16px;box-shadow:0 4px 20px rgba(0,0,0,.07);position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s}
+.kpi:hover{transform:translateY(-3px);box-shadow:0 8px 30px rgba(0,0,0,.12)}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;border-radius:18px 18px 0 0;background:var(--kpi-color,#1976d2)}
+.kpi::after{content:'';position:absolute;bottom:-20px;right:-20px;width:90px;height:90px;border-radius:50%;background:var(--kpi-color,#1976d2);opacity:.06}
+.kpi.green{--kpi-color:#2e7d32}.kpi.orange{--kpi-color:#e65100}.kpi.purple{--kpi-color:#6a1b9a}.kpi.teal{--kpi-color:#00695c}.kpi.red{--kpi-color:#c62828}.kpi.gold{--kpi-color:#f57f17}
+.kpi-label{font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;font-weight:700}
+.kpi-val{font-size:32px;font-weight:900;color:#1a2332;line-height:1;letter-spacing:-1px}
+.kpi-sub{font-size:11px;color:#94a3b8;margin-top:6px}
+.kpi-icon{position:absolute;right:16px;top:16px;font-size:26px;opacity:.12}
 
 /* DASH SECTIONS */
-.dash-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px}
+.dash-row{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:20px}
 .dash-row.three{grid-template-columns:1fr 1fr 1fr}
 .dash-row.full{grid-template-columns:1fr}
-.dash-card{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.07);overflow:hidden}
-.dash-card-hdr{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:1px solid #f1f5f9}
-.dash-card-hdr h3{font-size:13px;font-weight:700;color:#0d47a1}
-.dash-card-body{padding:14px 16px}
+.dash-card{background:#fff;border-radius:18px;box-shadow:0 4px 20px rgba(0,0,0,.07);overflow:hidden;transition:box-shadow .2s}
+.dash-card:hover{box-shadow:0 8px 30px rgba(0,0,0,.11)}
+.dash-card-hdr{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid #f1f5f9}
+.dash-card-hdr h3{font-size:13px;font-weight:700;color:#0d47a1;display:flex;align-items:center;gap:6px}
+.dash-card-body{padding:16px 18px}
 
 /* BAR CHART */
-.bar-chart{display:flex;flex-direction:column;gap:7px}
+.bar-chart{display:flex;flex-direction:column;gap:9px}
 .bar-row{display:flex;align-items:center;gap:8px;font-size:12px}
-.bar-label{width:80px;color:#475569;text-align:right;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.bar-track{flex:1;background:#f1f5f9;border-radius:6px;height:20px;position:relative;overflow:hidden}
-.bar-fill{height:100%;border-radius:6px;display:flex;align-items:center;padding-left:6px;font-size:11px;font-weight:700;color:#fff;transition:width .6s ease;min-width:2px}
-.bar-fill.in{background:linear-gradient(90deg,#1976d2,#42a5f5)}
-.bar-fill.out{background:linear-gradient(90deg,#e65100,#ff8a65)}
+.bar-label{width:80px;color:#475569;text-align:right;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600}
+.bar-track{flex:1;background:#f1f5f9;border-radius:8px;height:22px;position:relative;overflow:hidden}
+.bar-fill{height:100%;border-radius:8px;display:flex;align-items:center;padding-left:8px;font-size:11px;font-weight:700;color:#fff;transition:width .7s cubic-bezier(.4,0,.2,1);min-width:2px}
+.bar-fill.in{background:linear-gradient(90deg,#1565c0,#42a5f5)}
+.bar-fill.out{background:linear-gradient(90deg,#bf360c,#ff8a65)}
 .bar-val{font-size:11px;font-weight:700;color:#475569;min-width:24px;text-align:right}
 
 /* MINI TABLE */
 .mini-table{width:100%;border-collapse:collapse;font-size:12px}
-.mini-table th{background:#f0f6ff;color:#0d47a1;padding:7px 10px;text-align:left;font-size:11px;font-weight:700}
-.mini-table td{padding:7px 10px;border-bottom:1px solid #f8f9fb;vertical-align:middle}
+.mini-table th{background:#f0f6ff;color:#0d47a1;padding:9px 12px;text-align:left;font-size:11px;font-weight:700;border-bottom:2px solid #dbeafe}
+.mini-table td{padding:9px 12px;border-bottom:1px solid #f8f9fb;vertical-align:middle}
 .mini-table tr:last-child td{border-bottom:none}
-.mini-table tr:hover td{background:#fafcff}
+.mini-table tr:hover td{background:#f0f9ff}
 
 /* DONUT CHART */
 .donut-wrap{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
-.donut-svg{flex-shrink:0}
-.donut-legend{display:flex;flex-direction:column;gap:8px}
-.legend-item{display:flex;align-items:center;gap:7px;font-size:12px}
-.legend-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+.donut-svg{flex-shrink:0;filter:drop-shadow(0 2px 8px rgba(0,0,0,.1))}
+.donut-legend{display:flex;flex-direction:column;gap:10px}
+.legend-item{display:flex;align-items:center;gap:8px;font-size:12px}
+.legend-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
 
 /* MONTH HEATMAP */
 .month-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
-.month-cell{border-radius:8px;padding:10px 6px;text-align:center;font-size:11px;cursor:default}
+.month-cell{border-radius:10px;padding:10px 6px;text-align:center;font-size:11px;cursor:default}
 .month-cell .mcl{font-weight:700;font-size:13px;display:block}
 .month-cell .mcs{font-size:10px;color:#64748b}
 
@@ -163,42 +167,46 @@ tbody td.tc{text-align:center}
 .rpt-total{background:#f0f6ff!important;font-weight:700}
 
 /*==== PRODUCT CARDS ====*/
-.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;padding:16px}
-.product-card{background:#fff;border-radius:14px;box-shadow:0 2px 10px rgba(0,0,0,.08);overflow:hidden;transition:transform .18s,box-shadow .18s;position:relative}
-.product-card:hover{transform:translateY(-3px);box-shadow:0 6px 20px rgba(0,0,0,.13)}
-.product-card{border-top:4px solid #1976d2}
-.product-card.stock-out{opacity:.7}
-.pc-header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 8px}
-.pc-sl{font-size:10px;font-weight:700;color:#94a3b8;background:#f8fafc;padding:2px 8px;border-radius:10px}
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:20px;padding:20px}
+.product-card{background:#fff;border-radius:20px;box-shadow:0 4px 24px rgba(0,0,0,.08);overflow:hidden;transition:transform .2s,box-shadow .2s;position:relative}
+.product-card:hover{transform:translateY(-4px);box-shadow:0 12px 36px rgba(0,0,0,.14)}
+.product-card.stock-out{opacity:.72}
+/* Gradient accent bar on top */
+.product-card::before{content:'';position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,#0d47a1,#42a5f5)}
+.product-card.stock-out::before{background:linear-gradient(90deg,#94a3b8,#cbd5e1)}
+.pc-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px}
+.pc-sl{font-size:10px;font-weight:800;color:#94a3b8;background:#f8fafc;padding:3px 10px;border-radius:20px;letter-spacing:.5px}
 .pc-stock-badge{font-size:12px;font-weight:800;padding:4px 12px;border-radius:12px}
-.pc-brand{padding:0 14px 2px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
-.pc-company{font-size:17px;font-weight:800;color:#0d47a1;line-height:1.1}
-.pc-model{font-size:11px;font-family:monospace;color:#64748b;background:#f1f5f9;padding:2px 7px;border-radius:5px}
-.pc-stars{padding:4px 14px 6px;color:#f59e0b;font-size:14px;letter-spacing:1px}
-.pc-divider{height:1px;background:#f1f5f9;margin:0 14px}
-.pc-details{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px;padding:10px 14px}
-.pc-detail{display:flex;flex-direction:column;gap:1px}
-.pc-detail-label{font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:#94a3b8;font-weight:700}
-.pc-detail-val{font-size:12px;font-weight:700;color:#1a2332}
-.pc-nlc-row{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:#f0f6ff;margin:0 10px 10px;border-radius:8px}
-.pc-nlc-label{font-size:10px;color:#1976d2;font-weight:700;text-transform:uppercase}
-.pc-nlc-val{font-size:16px;font-weight:800;color:#0d47a1}
-.pc-balance-bar{display:flex;align-items:center;justify-content:space-between;padding:8px 14px 4px}
+.pc-brand{padding:2px 16px 6px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.pc-company{font-size:18px;font-weight:900;color:#0d47a1;line-height:1.1;letter-spacing:-.3px}
+.pc-model{font-size:11px;font-family:monospace;color:#fff;background:#334155;padding:3px 9px;border-radius:6px;font-weight:700;letter-spacing:.5px}
+.pc-stars{padding:4px 16px 8px;color:#f59e0b;font-size:15px;letter-spacing:2px}
+.pc-divider{height:1px;background:linear-gradient(90deg,transparent,#e2e8f0,transparent);margin:0 16px}
+.pc-details{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;padding:12px 16px}
+.pc-detail{display:flex;flex-direction:column;gap:2px}
+.pc-detail-label{font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:#94a3b8;font-weight:700}
+.pc-detail-val{font-size:13px;font-weight:700;color:#1a2332}
+.pc-nlc-row{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:linear-gradient(135deg,#eff6ff,#dbeafe);margin:0 12px 12px;border-radius:12px;border:1px solid #bfdbfe}
+.pc-nlc-label{font-size:10px;color:#1d4ed8;font-weight:700;text-transform:uppercase;letter-spacing:.6px}
+.pc-nlc-val{font-size:17px;font-weight:900;color:#1e40af}
+.pc-balance-bar{display:flex;align-items:center;justify-content:space-between;padding:8px 16px 4px}
 .pc-balance-label{font-size:10px;color:#475569;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
 .pc-balance-val{font-size:22px;font-weight:900;line-height:1}
-.pc-sell-panel{background:#fff7ed;border-top:1px dashed #fed7aa;padding:10px 14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pc-sell-panel{background:linear-gradient(135deg,#fff7ed,#ffedd5);border-top:1px dashed #fdba74;padding:10px 16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .pc-sell-label{font-size:11px;font-weight:700;color:#92400e;flex:none}
-.pc-sell-input{width:64px;padding:5px 8px;border:1.5px solid #fed7aa;border-radius:7px;font-size:13px;font-weight:700;color:#92400e;text-align:center;background:#fff}
+.pc-sell-input{width:64px;padding:6px 8px;border:1.5px solid #fdba74;border-radius:8px;font-size:13px;font-weight:700;color:#92400e;text-align:center;background:#fff}
 .pc-sell-input:focus{outline:none;border-color:#e65100}
-.btn-sell{padding:5px 14px;background:#e65100;color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;transition:background .2s}
-.btn-sell:hover{background:#bf360c}
-.btn-sell:disabled{background:#94a3b8;cursor:not-allowed}
-.pc-remarks{padding:0 14px 8px;font-size:11px;color:#64748b;font-style:italic}
-.pc-footer{display:flex;gap:6px;padding:10px 14px;border-top:1px solid #f1f5f9;justify-content:flex-end}
-.pc-date{font-size:11px;color:#94a3b8;flex:1;display:flex;align-items:center}
+.btn-sell{padding:6px 16px;background:linear-gradient(135deg,#ea580c,#dc2626);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;transition:opacity .2s;box-shadow:0 2px 8px rgba(220,38,38,.3)}
+.btn-sell:hover{opacity:.88}
+.btn-sell:disabled{background:#94a3b8;cursor:not-allowed;box-shadow:none}
+.pc-remarks{padding:0 16px 8px;font-size:11px;color:#64748b;font-style:italic}
+.pc-footer{display:flex;gap:6px;padding:10px 16px;border-top:1px solid #f1f5f9;justify-content:flex-end;align-items:center;background:#fafcff}
+.pc-date{font-size:11px;color:#94a3b8;flex:1;display:flex;align-items:center;gap:4px}
+.btn-wa{padding:5px 11px;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;border:none;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px;box-shadow:0 2px 6px rgba(34,197,94,.3);transition:opacity .2s}
+.btn-wa:hover{opacity:.88}
 .empty-cards{text-align:center;padding:60px;color:#94a3b8;grid-column:1/-1}
 .empty-cards .ei{font-size:44px;margin-bottom:10px}
-.cards-footer{padding:10px 16px;font-size:12px;color:#64748b;border-top:1px solid #f1f5f9;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;background:#fff}
+.cards-footer{padding:12px 20px;font-size:12px;color:#64748b;border-top:1px solid #f1f5f9;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;background:#fff}
 
 /* TOAST */
 #toast{position:fixed;bottom:24px;right:24px;background:#0d47a1;color:#fff;padding:12px 20px;border-radius:9px;font-size:13px;font-weight:700;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,.22)}
@@ -476,6 +484,9 @@ tbody td.tc{text-align:center}
         </select>
         <select class="filter-select" id="flt-star" onchange="renderTable()">
           <option value="">All Stars</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
+        </select>
+        <select class="filter-select" id="flt-capacity" onchange="renderTable()">
+          <option value="">All Capacity</option>
         </select>
         <button class="btn-excel" onclick="exportCSV()">&#128190; Export</button>
         <button class="btn-secondary" onclick="window.print()">&#128438; Print</button>
@@ -860,6 +871,10 @@ function updateCompanyFilters(){
     companies.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;sel.appendChild(o);});
     sel.value=cur;
   });
+  // Capacity filter
+  const capacities=[...new Set(stock.map(e=>e.capacity).filter(Boolean))].sort((a,b)=>{const n=s=>parseFloat(s)||0;return n(a)-n(b);});
+  const capSel=document.getElementById('flt-capacity');
+  if(capSel){const curC=capSel.value;capSel.innerHTML='<option value="">All Capacity</option>';capacities.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;capSel.appendChild(o);});capSel.value=curC;}
   // Year selector for dashboard
   const years=[...new Set(stock.map(e=>fy(e.date)).filter(Boolean))].sort().reverse();
   const ysel=document.getElementById('dash-year');
@@ -892,6 +907,134 @@ function sellStock(key){
   toast(`✔ ${qty} unit${qty>1?'s':''} sold — ${ref.company} ${ref.model}`);
 }
 
+/* ===== WHATSAPP SHARE AS IMAGE ===== */
+async function shareWhatsApp(key) {
+  const grp = stock.filter(e => e.company + '||' + e.model + '||' + e.capacity === key);
+  if (!grp.length) return;
+  const ref = grp.find(e => e.type === 'IN') || grp[0];
+  const balance = grp.reduce((s, e) => s + (e.type === 'IN' ? e.qty : -e.qty), 0);
+  const stars = '★'.repeat(ref.star) + '☆'.repeat(5 - ref.star);
+  const invLabel = ref.invType === 'Inverter' ? '⚡ Inverter' : '🔌 Non-Inverter';
+  const repLabel = ref.repType === 'Reporting' ? '✔ Reporting' : '✘ Non-Reporting';
+
+  // Build canvas
+  const W = 600, H = 340;
+  const canvas = document.createElement('canvas');
+  canvas.width = W * 2; canvas.height = H * 2;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(2, 2);
+
+  // Background gradient
+  const bg = ctx.createLinearGradient(0, 0, W, H);
+  bg.addColorStop(0, '#0d47a1'); bg.addColorStop(1, '#1976d2');
+  ctx.fillStyle = bg; ctx.beginPath();
+  roundRect(ctx, 0, 0, W, H, 18); ctx.fill();
+
+  // White card
+  ctx.fillStyle = '#fff'; ctx.globalAlpha = 0.97;
+  roundRect(ctx, 20, 20, W - 40, H - 40, 14); ctx.fill();
+  ctx.globalAlpha = 1;
+
+  // Blue top accent
+  const accent = ctx.createLinearGradient(20, 20, W - 20, 20);
+  accent.addColorStop(0, '#0d47a1'); accent.addColorStop(1, '#42a5f5');
+  ctx.fillStyle = accent;
+  roundRect(ctx, 20, 20, W - 40, 7, {tl:14,tr:14,br:0,bl:0}); ctx.fill();
+
+  // Snowflake + company
+  ctx.fillStyle = '#0d47a1'; ctx.font = 'bold 22px Arial';
+  ctx.fillText('❄', 38, 72);
+  ctx.font = 'bold 22px Arial'; ctx.fillStyle = '#0d47a1';
+  ctx.fillText(ref.company, 70, 72);
+
+  // Model badge
+  ctx.fillStyle = '#1e293b'; ctx.font = 'bold 12px monospace';
+  const modelW = ctx.measureText(ref.model).width + 16;
+  roundRect(ctx, 70, 80, modelW, 20, 5); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.font = 'bold 12px monospace';
+  ctx.fillText(ref.model, 78, 94);
+
+  // Stars
+  ctx.font = '18px Arial'; ctx.fillStyle = '#f59e0b';
+  ctx.fillText(stars, 38, 128);
+
+  // Divider
+  ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(38, 140); ctx.lineTo(W - 38, 140); ctx.stroke();
+
+  // Details grid
+  const details = [
+    ['Capacity', ref.capacity || '—'],
+    ['Type', invLabel],
+    ['Reporting', repLabel],
+    ['Balance Stock', balance + ' units'],
+  ];
+  ctx.font = 'bold 10px Arial'; ctx.fillStyle = '#94a3b8';
+  ctx.font = '10px Arial';
+  details.forEach((d, i) => {
+    const col = i % 2, row = Math.floor(i / 2);
+    const x = 38 + col * 260, y = 165 + row * 52;
+    ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 9px Arial';
+    ctx.fillText(d[0].toUpperCase(), x, y);
+    ctx.fillStyle = '#1a2332'; ctx.font = 'bold 14px Arial';
+    ctx.fillText(d[1], x, y + 18);
+  });
+
+  // Bottom strip
+  const strip = ctx.createLinearGradient(20, H - 70, 20, H - 20);
+  strip.addColorStop(0, '#eff6ff'); strip.addColorStop(1, '#dbeafe');
+  ctx.fillStyle = strip;
+  roundRect(ctx, 20, H - 68, W - 40, 48, {tl:0,tr:0,br:14,bl:14}); ctx.fill();
+
+  ctx.fillStyle = '#1d4ed8'; ctx.font = 'bold 10px Arial';
+  ctx.fillText('AC STOCK — ELDORADO', 38, H - 46);
+  ctx.fillStyle = '#64748b'; ctx.font = '10px Arial';
+  ctx.fillText(new Date().toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'}), 38, H - 30);
+
+  // Availability badge
+  const badgeTxt = balance > 0 ? '✔ IN STOCK' : '✘ OUT OF STOCK';
+  const badgeColor = balance > 0 ? '#16a34a' : '#dc2626';
+  const badgeBg = balance > 0 ? '#dcfce7' : '#fee2e2';
+  const badgeW = 120;
+  ctx.fillStyle = badgeBg;
+  roundRect(ctx, W - 40 - badgeW, H - 60, badgeW, 28, 8); ctx.fill();
+  ctx.fillStyle = badgeColor; ctx.font = 'bold 11px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText(badgeTxt, W - 40 - badgeW / 2, H - 41);
+  ctx.textAlign = 'left';
+
+  function roundRect(c, x, y, w, h, r) {
+    if (typeof r === 'number') r = {tl:r,tr:r,br:r,bl:r};
+    const {tl=0,tr=0,br=0,bl=0} = r;
+    c.beginPath();
+    c.moveTo(x + tl, y);
+    c.lineTo(x + w - tr, y); c.quadraticCurveTo(x+w, y, x+w, y+tr);
+    c.lineTo(x+w, y+h-br); c.quadraticCurveTo(x+w, y+h, x+w-br, y+h);
+    c.lineTo(x+bl, y+h); c.quadraticCurveTo(x, y+h, x, y+h-bl);
+    c.lineTo(x, y+tl); c.quadraticCurveTo(x, y, x+tl, y);
+    c.closePath();
+  }
+
+  // Share via Web Share API or fallback download
+  canvas.toBlob(async blob => {
+    const file = new File([blob], `${ref.company}_${ref.model}.png`, {type:'image/png'});
+    if (navigator.canShare && navigator.canShare({files:[file]})) {
+      try {
+        await navigator.share({files:[file], title:`${ref.company} ${ref.model}`, text:`${ref.company} ${ref.model} — ${ref.capacity} | ${invLabel} | ${balance} units available`});
+        return;
+      } catch(e) { /* fall through */ }
+    }
+    // Fallback: open WhatsApp web with text, download image
+    const a = document.createElement('a');
+    a.href = canvas.toDataURL('image/png');
+    a.download = `${ref.company}_${ref.model}.png`;
+    a.click();
+    const txt = encodeURIComponent(`*${ref.company} ${ref.model}*\n${ref.capacity} | ${invLabel} | ${ref.star}★ | ${repLabel}\nBalance: *${balance} units*\n\n_Eldorado AC Stock_`);
+    setTimeout(() => window.open(`https://wa.me/?text=${txt}`, '_blank'), 400);
+    toast('📸 Image downloaded — share on WhatsApp!');
+  }, 'image/png');
+}
+
 /* ===== LEDGER — PRODUCT CARD VIEW ===== */
 function renderTable(){
   computeClosing();
@@ -900,6 +1043,7 @@ function renderTable(){
   const finv=document.getElementById('flt-inv').value;
   const frep=document.getElementById('flt-rep').value;
   const fstar=document.getElementById('flt-star').value;
+  const fcap=document.getElementById('flt-capacity').value;
 
   // Build product groups (key = company||model||capacity)
   const groups={};
@@ -924,6 +1068,7 @@ function renderTable(){
   if(finv)products=products.filter(p=>p.invType===finv);
   if(frep)products=products.filter(p=>p.repType===frep);
   if(fstar)products=products.filter(p=>p.star===parseInt(fstar));
+  if(fcap)products=products.filter(p=>p.capacity===fcap);
   products.sort((a,b)=>a.company.localeCompare(b.company));
 
   const container=document.getElementById('ledgerCards');
@@ -941,13 +1086,14 @@ function renderTable(){
     const safeSellKey=p.key.replace(/'/g,"\\'");
     const inputId='sell-qty-'+p.key;
     const stars='★'.repeat(p.star)+'<span style="color:#e2e8f0">'+'★'.repeat(5-p.star)+'</span>';
-    const invBadge=`<span class="badge ${p.invType==='Inverter'?'badge-inv':'badge-noninv'}">${p.invType==='Inverter'?'⚡ Inverter':'🔌 Non-Inv'}</span>`;
-    const repBadge=`<span class="badge ${p.repType==='Reporting'?'badge-rep':'badge-nonrep'}">${p.repType==='Reporting'?'✔ Rpt':'✘ Non-Rpt'}</span>`;
+    const invBadge=`<span class="badge ${p.invType==='Inverter'?'badge-inv':'badge-noninv'}" style="font-size:10px;padding:3px 8px">${p.invType==='Inverter'?'⚡ Inverter':'🔌 Non-Inv'}</span>`;
+    const repBadge=`<span class="badge ${p.repType==='Reporting'?'badge-rep':'badge-nonrep'}" style="font-size:10px;padding:3px 8px">${p.repType==='Reporting'?'✔ Rpt':'✘ Non-Rpt'}</span>`;
+    const capBadge=p.capacity?`<span class="badge" style="background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;font-size:10px;padding:3px 8px">🌡 ${p.capacity}</span>`:'';
     // progress bar: sold %
     return`<div class="product-card${balance<=0?' stock-out':''}">
       <div class="pc-header">
         <span class="pc-sl">#${i+1}</span>
-        <span style="display:flex;gap:5px">${invBadge}${repBadge}</span>
+        <span style="display:flex;gap:4px;flex-wrap:wrap">${capBadge}${invBadge}${repBadge}</span>
       </div>
       <div class="pc-brand">
         <div class="pc-company">❄ ${p.company}</div>
@@ -957,40 +1103,40 @@ function renderTable(){
       <div class="pc-divider"></div>
       <div class="pc-details">
         <div class="pc-detail">
-          <span class="pc-detail-label">Capacity</span>
-          <span class="pc-detail-val">🌡 ${p.capacity||'—'}</span>
+          <span class="pc-detail-label">First Added</span>
+          <span class="pc-detail-val" style="font-size:11px">📅 ${fmtDate(p.firstDate)}</span>
         </div>
         <div class="pc-detail">
-          <span class="pc-detail-label">Added</span>
-          <span class="pc-detail-val" style="font-size:11px">${fmtDate(p.firstDate)}</span>
+          <span class="pc-detail-label">Last Updated</span>
+          <span class="pc-detail-val" style="font-size:11px">🔄 ${fmtDate(p.lastDate)}</span>
         </div>
         <div class="pc-detail">
           <span class="pc-detail-label">Stock IN</span>
-          <span class="pc-detail-val" style="color:#166534">+${p.totalIn} units</span>
+          <span class="pc-detail-val" style="color:#166534;font-size:15px">+${p.totalIn} <span style="font-size:10px;font-weight:600">units</span></span>
         </div>
         <div class="pc-detail">
           <span class="pc-detail-label">Sold OUT</span>
-          <span class="pc-detail-val" style="color:#9a3412">−${p.totalOut} units</span>
+          <span class="pc-detail-val" style="color:#9a3412;font-size:15px">−${p.totalOut} <span style="font-size:10px;font-weight:600">units</span></span>
         </div>
       </div>
       <!-- Progress bar -->
-      <div style="padding:0 14px 8px">
-        <div style="display:flex;justify-content:space-between;font-size:10px;color:#94a3b8;margin-bottom:3px">
+      <div style="padding:0 16px 10px">
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:#94a3b8;margin-bottom:4px">
           <span>Sold ${outPct}%</span><span>Remaining ${100-outPct}%</span>
         </div>
-        <div style="background:#f1f5f9;border-radius:6px;height:8px;overflow:hidden">
-          <div style="height:100%;width:${outPct}%;background:linear-gradient(90deg,#e65100,#ff8a65);border-radius:6px;transition:width .5s"></div>
+        <div style="background:#f1f5f9;border-radius:8px;height:7px;overflow:hidden">
+          <div style="height:100%;width:${outPct}%;background:linear-gradient(90deg,#ea580c,#fb923c);border-radius:8px;transition:width .6s cubic-bezier(.4,0,.2,1)"></div>
         </div>
       </div>
       <!-- NLC + Balance -->
       <div class="pc-nlc-row">
         <div>
-          <div class="pc-nlc-label">NLC — Net Landing Cost</div>
+          <div class="pc-nlc-label">Net Landing Cost</div>
           <div class="pc-nlc-val">₹${p.nlc.toLocaleString('en-IN',{minimumFractionDigits:2})}</div>
         </div>
         <div style="text-align:right">
-          <div style="font-size:9px;color:#94a3b8;font-weight:700;margin-bottom:4px">BALANCE STOCK</div>
-          <span style="font-size:24px;font-weight:900;color:${balColor};background:${balBg};padding:2px 14px;border-radius:10px">${balance}</span>
+          <div style="font-size:9px;color:#64748b;font-weight:700;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">Balance</div>
+          <span style="font-size:26px;font-weight:900;color:${balColor};background:${balBg};padding:3px 16px;border-radius:12px;box-shadow:0 2px 8px ${balColor}22">${balance}</span>
         </div>
       </div>
       <!-- Sell panel -->
@@ -998,14 +1144,18 @@ function renderTable(){
         <span class="pc-sell-label">🛒 Sell:</span>
         <input class="pc-sell-input" type="number" id="${inputId}" min="1" max="${balance}" value="1" placeholder="Qty"/>
         <button class="btn-sell${isAdmin?'':' admin-locked'}" onclick="sellStock('${safeSellKey}')" title="${isAdmin?'':'Admin only'}">Confirm Sale</button>
-        <span style="font-size:11px;color:#92400e;margin-left:auto">Max: ${balance}</span>
-      </div>`:`<div style="padding:8px 14px;text-align:center;font-size:12px;color:#9a3412;font-weight:700;background:#ffedd5">⚠ Out of Stock</div>`}
+        <span style="font-size:11px;color:#92400e;margin-left:auto;font-weight:700">Max: ${balance}</span>
+      </div>`:`<div style="padding:9px 16px;text-align:center;font-size:12px;color:#9a3412;font-weight:700;background:linear-gradient(135deg,#ffedd5,#fee2e2);letter-spacing:.3px">⚠ Out of Stock</div>`}
       ${p.remarks?`<div class="pc-remarks">💬 ${p.remarks}</div>`:''}
       <div class="pc-footer">
-        <span class="pc-date">📅 Last: ${fmtDate(p.lastDate)}</span>
+        <span class="pc-date">📅 ${fmtDate(p.lastDate)}</span>
+        <button class="btn-wa" onclick="shareWhatsApp('${safeSellKey}')" title="Share on WhatsApp">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          Share
+        </button>
         <button class="btn-edit" onclick="editProductEntries('${safeSellKey}')">📋 History</button>
-        <button class="btn-edit" style="background:#e8f5e9;color:#2e7d32${isAdmin?'':';opacity:.45;cursor:not-allowed'}" onclick="editProduct('${safeSellKey}')" title="${isAdmin?'Edit':'Admin only'}">✏️ Edit</button>
-        <button class="btn-del" style="${isAdmin?'':';opacity:.45;cursor:not-allowed'}" onclick="deleteProduct('${safeSellKey}')" title="${isAdmin?'Delete':'Admin only'}">🗑 Delete</button>
+        <button class="btn-edit" style="background:#e8f5e9;color:#2e7d32${isAdmin?'':';opacity:.45;cursor:not-allowed'}" onclick="editProduct('${safeSellKey}')" title="${isAdmin?'Edit':'Admin only'}">✏️</button>
+        <button class="btn-del" style="${isAdmin?'':';opacity:.45;cursor:not-allowed'}" onclick="deleteProduct('${safeSellKey}')" title="${isAdmin?'Delete':'Admin only'}">🗑</button>
       </div>
     </div>`;
   }).join('');
@@ -1101,13 +1251,13 @@ function renderDashboard(){
 
   // KPI
   document.getElementById('kpiCards').innerHTML=`
-    <div class="kpi"><div class="kpi-label">Total Stock In</div><div class="kpi-val">${tIn}</div><div class="kpi-sub">All time units received</div><div class="kpi-icon">&#9660;</div></div>
-    <div class="kpi orange"><div class="kpi-label">Total Stock Out</div><div class="kpi-val">${tOut}</div><div class="kpi-sub">All time units dispatched</div><div class="kpi-icon">&#9650;</div></div>
-    <div class="kpi green"><div class="kpi-label">Closing Stock</div><div class="kpi-val">${closing}</div><div class="kpi-sub">Current balance</div><div class="kpi-icon">&#128230;</div></div>
-    <div class="kpi teal"><div class="kpi-label">Inverter Units</div><div class="kpi-val">${invIn}</div><div class="kpi-sub">Stock IN entries</div><div class="kpi-icon">&#9889;</div></div>
-    <div class="kpi purple"><div class="kpi-label">Brands</div><div class="kpi-val">${brands}</div><div class="kpi-sub">Companies tracked</div><div class="kpi-icon">&#127970;</div></div>
-    <div class="kpi gold"><div class="kpi-label">This Month IN</div><div class="kpi-val">${mthIn}</div><div class="kpi-sub">OUT: ${mthOut} units</div><div class="kpi-icon">&#128197;</div></div>
-    <div class="kpi red"><div class="kpi-label">Total Entries</div><div class="kpi-val">${stock.length}</div><div class="kpi-sub">All records</div><div class="kpi-icon">&#128196;</div></div>
+    <div class="kpi"><div class="kpi-icon">📥</div><div class="kpi-label">Total Stock In</div><div class="kpi-val">${tIn}</div><div class="kpi-sub">All time units received</div></div>
+    <div class="kpi orange"><div class="kpi-icon">📤</div><div class="kpi-label">Total Stock Out</div><div class="kpi-val">${tOut}</div><div class="kpi-sub">All time units dispatched</div></div>
+    <div class="kpi green"><div class="kpi-icon">📦</div><div class="kpi-label">Closing Stock</div><div class="kpi-val">${closing}</div><div class="kpi-sub">Current balance</div></div>
+    <div class="kpi teal"><div class="kpi-icon">⚡</div><div class="kpi-label">Inverter Units</div><div class="kpi-val">${invIn}</div><div class="kpi-sub">Stock IN entries</div></div>
+    <div class="kpi purple"><div class="kpi-icon">🏷️</div><div class="kpi-label">Brands</div><div class="kpi-val">${brands}</div><div class="kpi-sub">Companies tracked</div></div>
+    <div class="kpi gold"><div class="kpi-icon">📅</div><div class="kpi-label">This Month IN</div><div class="kpi-val">${mthIn}</div><div class="kpi-sub">OUT: ${mthOut} units</div></div>
+    <div class="kpi red"><div class="kpi-icon">📋</div><div class="kpi-label">Total Entries</div><div class="kpi-val">${stock.length}</div><div class="kpi-sub">All records</div></div>
   `;
 
   // Year selector
