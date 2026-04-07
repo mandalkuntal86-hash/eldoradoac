@@ -224,7 +224,31 @@ tbody td.tc{text-align:center}
   .panel{display:block!important}
   body{background:#fff}
 }
+
+/* FIREBASE SYNC INDICATOR */
+#fb-status{display:flex;align-items:center;gap:6px;font-size:11px;padding:4px 12px;border-radius:14px;font-weight:700;cursor:default;transition:all .3s;white-space:nowrap}
+#fb-status.connecting{background:rgba(255,255,255,.15);color:#fff;opacity:.8}
+#fb-status.online{background:rgba(34,197,94,.2);color:#bbf7d0}
+#fb-status.offline{background:rgba(239,68,68,.2);color:#fca5a5}
+#fb-status .fb-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+#fb-status.connecting .fb-dot{background:#fbbf24;animation:fbpulse 1s infinite}
+#fb-status.online .fb-dot{background:#4ade80}
+#fb-status.offline .fb-dot{background:#f87171}
+@keyframes fbpulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* FIREBASE CONFIG BANNER */
+#fb-config-banner{background:#fff3cd;border:1.5px solid #ffc107;border-radius:10px;padding:14px 18px;margin:16px 22px 0;display:flex;align-items:flex-start;gap:12px;font-size:13px}
+#fb-config-banner.hidden{display:none}
+.fb-banner-icon{font-size:22px;flex-shrink:0}
+.fb-banner-content{flex:1}
+.fb-banner-content b{color:#856404;display:block;margin-bottom:4px}
+.fb-banner-content code{background:#fff;border:1px solid #ffc107;border-radius:4px;padding:1px 6px;font-size:11px;color:#c0392b}
+.fb-banner-close{background:none;border:none;font-size:18px;cursor:pointer;color:#856404;flex-shrink:0;padding:0 2px}
 </style>
+
+<!-- Firebase SDK (v9 compat) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 </head>
 <body>
 
@@ -232,11 +256,25 @@ tbody td.tc{text-align:center}
 <div class="app-header">
   <div class="header-top">
     <h1><span class="logo">❄</span> AC Stock Maintain &nbsp;<span style="font-size:13px;font-weight:400;opacity:.8">— NLC Register</span></h1>
-    <div class="live-date" id="liveDate"></div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div id="fb-status" class="connecting"><span class="fb-dot"></span><span id="fb-status-text">Connecting…</span></div>
+      <div class="live-date" id="liveDate"></div>
+    </div>
   </div>
   <div class="header-sub">
     <span>Model &bull; Company &bull; Star Rating &bull; Inverter Type &bull; Reporting Status &bull; <b>NLC</b></span>
   </div>
+</div>
+
+<!-- FIREBASE CONFIG BANNER -->
+<div id="fb-config-banner">
+  <span class="fb-banner-icon">🔥</span>
+  <div class="fb-banner-content">
+    <b>Firebase Setup Required</b>
+    Open this file in a text editor and replace the placeholder values in the <code>FIREBASE CONFIG</code> section inside the &lt;script&gt; tag with your actual Firebase project credentials.
+    Get them from: <a href="https://console.firebase.google.com/" target="_blank" style="color:#0d47a1">Firebase Console</a> → Your Project → Project Settings → Your Apps → SDK setup and configuration.
+  </div>
+  <button class="fb-banner-close" onclick="document.getElementById('fb-config-banner').classList.add('hidden')">✕</button>
 </div>
 
 <!-- TABS -->
@@ -483,14 +521,120 @@ tbody td.tc{text-align:center}
 </div>
 
 <script>
+/* ===== FIREBASE CONFIG — REPLACE WITH YOUR PROJECT CREDENTIALS ===== */
+const FIREBASE_CONFIG = {
+  apiKey:            "AIzaSyC4rl4pHhhWg13yrYura7280eQVo2Aw2FE",
+  authDomain:        "eldoradoac-fab9a.firebaseapp.com",
+  databaseURL:       "https://eldoradoac-fab9a-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:         "eldoradoac-fab9a",
+  storageBucket:     "eldoradoac-fab9a.firebasestorage.app",
+  messagingSenderId: "1000020486321",
+  appId:             "1:1000020486321:web:99d1731c9060e84d2b9a90"
+};
+const FB_PATH = 'acStock2'; // Realtime DB path — change if needed
+
+/* ===== FIREBASE INIT ===== */
+let fbDb = null;
+let fbConnected = false;
+
+function fbSetStatus(state, msg) {
+  const el = document.getElementById('fb-status');
+  const txt = document.getElementById('fb-status-text');
+  el.className = state;
+  txt.textContent = msg;
+}
+
+function initFirebase() {
+  try {
+    if (FIREBASE_CONFIG.apiKey === 'YOUR_API_KEY') {
+      fbSetStatus('offline', '⚠ Not configured');
+      return;
+    }
+
+    // If databaseURL not provided, auto-construct it
+    if (!FIREBASE_CONFIG.databaseURL) {
+      FIREBASE_CONFIG.databaseURL = `https://${FIREBASE_CONFIG.projectId}-default-rtdb.firebaseio.com`;
+    }
+
+    // Prevent duplicate app init on hot-reload
+    if (!firebase.apps.length) {
+      firebase.initializeApp(FIREBASE_CONFIG);
+    }
+
+    fbDb = firebase.database();
+
+    // Hide config banner
+    document.getElementById('fb-config-banner').classList.add('hidden');
+    fbSetStatus('connecting', 'Connecting…');
+
+    // Timeout: if no connection within 8s, show helpful message
+    const connTimeout = setTimeout(() => {
+      if (!fbConnected) {
+        fbSetStatus('offline', '⚠ Enable Realtime DB');
+        toast('Firebase: Please enable Realtime Database in Firebase Console → Build → Realtime Database', false);
+      }
+    }, 8000);
+
+    // Connection state listener
+    fbDb.ref('.info/connected').on('value', snap => {
+      fbConnected = !!snap.val();
+      if (fbConnected) {
+        clearTimeout(connTimeout);
+        fbSetStatus('online', '☁ Firebase Synced');
+      } else {
+        fbSetStatus('offline', '📴 Offline — Local mode');
+      }
+    });
+
+    // Real-time data listener
+    fbDb.ref(FB_PATH).on('value', snap => {
+      const raw = snap.val();
+      stock = raw ? Object.values(raw) : [];
+      localStorage.setItem('acStock2', JSON.stringify(stock));
+      computeClosing(); updateSummary(); renderTable(); updateCompanyFilters(); renderDashboard();
+    }, err => {
+      console.error('Firebase read error:', err.code, err.message);
+      clearTimeout(connTimeout);
+      if (err.code === 'PERMISSION_DENIED') {
+        fbSetStatus('offline', '🔒 Permission Denied');
+        toast('Firebase: Set Realtime DB rules to allow read/write (Test mode)', false);
+      } else if (err.message && err.message.includes('400')) {
+        fbSetStatus('offline', '⚠ DB Not Found');
+        toast('Firebase: Realtime Database not created yet. Go to Firebase Console → Build → Realtime Database → Create Database', false);
+      } else {
+        fbSetStatus('offline', '❌ DB Error');
+        toast('Firebase error: ' + err.message, false);
+      }
+    });
+
+  } catch (e) {
+    console.error('Firebase init error:', e);
+    fbSetStatus('offline', '❌ ' + (e.message || 'Init Failed'));
+  }
+}
+
 /* ===== STATE ===== */
 let stock = JSON.parse(localStorage.getItem('acStock2')||'[]');
 let editId=null, deleteId=null;
 let invType='Inverter', repType='Reporting', selectedStar=0;
 let rptMode='month';
 
-/* ===== UTILS ===== */
-function save(){localStorage.setItem('acStock2',JSON.stringify(stock));}
+/* ===== SAVE — writes to Firebase, falls back to localStorage ===== */
+function save() {
+  // Always keep localStorage in sync as offline cache
+  localStorage.setItem('acStock2', JSON.stringify(stock));
+
+  if (!fbDb || !fbConnected) return; // offline — localStorage already saved
+
+  // Convert array to keyed object for Firebase (use entry id as key)
+  const obj = {};
+  stock.forEach(e => { obj[e.id] = e; });
+  fbDb.ref(FB_PATH).set(obj)
+    .catch(err => {
+      console.error('Firebase write error:', err);
+      toast('⚠ Sync error — saved locally', false);
+    });
+}
 function toast(msg,ok=true){const t=document.getElementById('toast');t.textContent=msg;t.style.background=ok?'#0d47a1':'#c62828';t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
 function closeModal(){document.getElementById('confirmModal').classList.remove('open');}
 function fmtDate(d){if(!d)return'';const[y,m,dd]=d.split('-');return`${dd}-${m}-${y}`;}
@@ -1073,6 +1217,7 @@ function switchTab(t){
 }
 
 /* ===== INIT ===== */
+initFirebase(); // Connect to Firebase (falls back to localStorage if not configured)
 computeClosing();updateCompanyFilters();renderDashboard();
 </script>
 </body>
