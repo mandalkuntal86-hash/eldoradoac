@@ -209,7 +209,7 @@ tbody td.tc{text-align:center}
 .cards-footer{padding:12px 20px;font-size:12px;color:#64748b;border-top:1px solid #f1f5f9;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;background:#fff}
 
 /* TOAST */
-#toast{position:fixed;bottom:24px;right:24px;left:auto;background:#0d47a1;color:#fff;padding:12px 20px;border-radius:9px;font-size:13px;font-weight:700;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,.22);max-width:calc(100vw - 48px)}
+#toast{position:fixed;bottom:24px;right:24px;background:#0d47a1;color:#fff;padding:12px 20px;border-radius:9px;font-size:13px;font-weight:700;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,.22);max-width:calc(100vw - 48px)}
 #toast.show{opacity:1}
 
 /* MODAL */
@@ -221,69 +221,58 @@ tbody td.tc{text-align:center}
 
 @media(max-width:700px){
   /* HEADER */
-  .header-top{padding:8px 12px 6px;flex-wrap:wrap;gap:6px}
-  .header-top h1{font-size:14px;gap:6px}
-  .header-top h1 .logo{font-size:16px;padding:3px 8px}
-  .header-top>div{gap:6px;flex-wrap:wrap;justify-content:flex-end}
+  .header-top{padding:8px 12px 6px;gap:6px}
+  .header-top h1{font-size:13px;gap:6px}
+  .header-top h1 .logo{font-size:15px;padding:3px 7px}
+  .header-top>div{gap:5px;flex-wrap:wrap;justify-content:flex-end}
   #fb-status{font-size:10px;padding:3px 8px}
-  #fb-status span:last-child{display:none} /* hide text, keep dot */
-  .live-date{font-size:11px;padding:4px 10px}
+  #fb-status #fb-status-text{display:none}
+  .live-date{font-size:10px;padding:3px 8px}
   .admin-badge{font-size:11px;padding:3px 9px}
-  .header-sub{padding:4px 12px;font-size:10px;gap:8px}
-
+  .header-sub{padding:4px 12px;font-size:10px;gap:6px}
   /* FIREBASE BANNER */
-  #fb-config-banner{margin:10px 12px 0;padding:10px 12px;font-size:12px}
-
-  /* TABS — icon only on very small screens */
-  .tabs{padding:0 4px}
-  .tab-btn{padding:10px 10px;font-size:12px;gap:4px}
-  .tab-btn span:not(.tab-icon){display:none} /* hide text labels */
-
+  #fb-config-banner{margin:8px 10px 0;padding:10px 12px;font-size:12px}
+  /* TABS — show only icons */
+  .tabs{padding:0 2px}
+  .tab-btn{padding:10px 12px;font-size:0;gap:0}
+  .tab-btn .tab-icon{font-size:18px}
   /* PANELS */
   .panel{padding:12px}
-
   /* DASHBOARD */
-  .dash-row{grid-template-columns:1fr}
-  .dash-row.three{grid-template-columns:1fr}
+  .dash-row,.dash-row.three{grid-template-columns:1fr}
   .kpi-grid{grid-template-columns:1fr 1fr;gap:10px}
-  .kpi{padding:14px 14px 12px}
+  .kpi{padding:14px 12px 12px}
   .kpi-val{font-size:26px}
   .month-grid{grid-template-columns:repeat(3,1fr)}
-
+  /* Wrap mini-tables for horizontal scroll */
+  .dash-card-body{overflow-x:auto}
+  .mini-table{min-width:320px}
   /* SUMMARY CARDS */
   .summary-grid{grid-template-columns:1fr 1fr}
   .sum-val{font-size:18px}
-
   /* PRODUCT CARDS */
   .cards-grid{grid-template-columns:1fr;padding:10px}
-
-  /* LEDGER TABLE TOOLBAR */
+  /* LEDGER TOOLBAR */
   .table-toolbar{flex-direction:column;align-items:stretch}
-  .table-toolbar h2{margin-bottom:4px}
   .toolbar-right{flex-direction:column;gap:6px}
   .search-box{width:100%}
   .filter-select{width:100%}
-
-  /* REPORT FILTERS */
-  .rpt-filters{flex-direction:column;padding:12px}
+  /* REPORT */
+  .rpt-filters{flex-direction:column}
   .rpt-filters .form-group{width:100%}
-  .rpt-filters input,.rpt-filters select{width:100%}
   .rpt-section{overflow-x:auto}
-  .rpt-table{min-width:500px}
-
+  .rpt-table{min-width:460px}
   /* FORM */
   .form-grid{grid-template-columns:1fr}
   .form-actions{flex-direction:column}
   .form-actions button{width:100%}
   .add-product-bar{flex-direction:column;align-items:stretch}
   .btn-add-product{justify-content:center}
-
   /* TOAST */
-  #toast{left:12px;right:12px;bottom:16px;text-align:center}
-
+  #toast{left:12px;right:12px;bottom:16px;text-align:center;max-width:calc(100vw - 24px)}
   /* MODAL */
   .modal{width:96%;padding:20px 16px}
-  .admin-box{padding:26px 18px 20px}
+  .admin-box{padding:24px 16px 18px}
 }
 @media print{
   .tabs,.form-card,.table-toolbar,.action-btns,.form-actions,#toast,.modal-overlay,.add-product-bar,.rpt-filters,.rpt-mode-tabs{display:none!important}
@@ -1382,17 +1371,17 @@ function renderDashboard(){
 
   // TOP BRANDS TABLE
   const topArr=Object.entries(brandMap).sort((a,b)=>b[1].in-a[1].in).slice(0,8);
-  document.getElementById('topBrandsTable').innerHTML=topArr.length?`<table class="mini-table">
+  document.getElementById('topBrandsTable').innerHTML=topArr.length?`<div style="overflow-x:auto"><table class="mini-table">
     <thead><tr><th>#</th><th>Brand</th><th style="text-align:center">IN</th><th style="text-align:center">OUT</th><th style="text-align:center">Closing</th></tr></thead>
     <tbody>${topArr.map(([n,v],i)=>`<tr><td style="color:#94a3b8">${i+1}</td><td><b>${n}</b></td><td style="text-align:center;color:#166534;font-weight:700">${v.in}</td><td style="text-align:center;color:#9a3412;font-weight:700">${v.out}</td><td style="text-align:center;font-weight:800">${v.in-v.out}</td></tr>`).join('')}</tbody>
-  </table>`:'<div class="empty-state" style="padding:24px"><div class="ei">&#127970;</div>No data.</div>';
+  </table></div>`:'<div class="empty-state" style="padding:24px"><div class="ei">&#127970;</div>No data.</div>';
 
   // RECENT 8
   const recent=[...stock].sort((a,b)=>b.id-a.id).slice(0,8);
-  document.getElementById('recentTable').innerHTML=recent.length?`<table class="mini-table">
+  document.getElementById('recentTable').innerHTML=recent.length?`<div style="overflow-x:auto"><table class="mini-table">
     <thead><tr><th>Date</th><th>Brand</th><th>Model</th><th style="text-align:center">Type</th><th style="text-align:center">Qty</th></tr></thead>
     <tbody>${recent.map(e=>`<tr><td>${fmtDate(e.date)}</td><td>${e.company}</td><td style="font-family:monospace;font-size:11px">${e.model}</td><td style="text-align:center"><span class="badge ${e.type==='IN'?'badge-in':'badge-out'}" style="font-size:10px">${e.type}</span></td><td style="text-align:center;font-weight:700">${e.qty}</td></tr>`).join('')}</tbody>
-  </table>`:'<div class="empty-state" style="padding:24px"><div class="ei">&#128337;</div>No entries yet.</div>';
+  </table></div>`:'<div class="empty-state" style="padding:24px"><div class="ei">&#128337;</div>No entries yet.</div>';
 }
 
 /* ===== REPORTS ===== */
