@@ -1328,11 +1328,12 @@ function renderDashboard(){
         <div class="bar-track"><div class="bar-fill in" style="width:${(d.in/maxM*100).toFixed(1)}%">${d.in>0?d.in:''}</div></div>
         <div class="bar-track" style="height:14px"><div class="bar-fill out" style="width:${(d.out/maxM*100).toFixed(1)}%">${d.out>0?d.out:''}</div></div>
       </div>
-      <div style="font-size:10px;color:#94a3b8;width:28px;text-align:right">${d.in+d.out||''}</div>
+      <div style="font-size:10px;font-weight:700;color:${(d.in-d.out)>0?'#166534':(d.in-d.out)<0?'#c62828':'#94a3b8'};width:32px;text-align:right" title="Closing Stock">${(d.in||d.out)?(d.in-d.out):''}</div>
     </div>`).join('')}
-    <div style="display:flex;gap:12px;margin-top:6px;font-size:11px">
+    <div style="display:flex;gap:12px;margin-top:6px;font-size:11px;align-items:center">
       <span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:8px;border-radius:2px;background:#1976d2;display:inline-block"></span>IN</span>
       <span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:8px;border-radius:2px;background:#e65100;display:inline-block"></span>OUT</span>
+      <span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:8px;border-radius:2px;background:#166534;display:inline-block"></span>Closing</span>
     </div>
   </div>`;
 
@@ -1348,7 +1349,7 @@ function renderDashboard(){
         <div class="bar-track"><div class="bar-fill in" style="width:${(v.in/maxB*100).toFixed(1)}%">${v.in>0?v.in:''}</div></div>
         <div class="bar-track" style="height:14px"><div class="bar-fill out" style="width:${(v.out/maxB*100).toFixed(1)}%">${v.out>0?v.out:''}</div></div>
       </div>
-      <div style="font-size:10px;color:#94a3b8;width:28px;text-align:right">${v.in+v.out}</div>
+      <div style="font-size:10px;font-weight:700;color:${`${(v.in-v.out)}`==='0'?'#94a3b8':(v.in-v.out)>0?'#166534':'#c62828'};width:32px;text-align:right" title="Closing Stock">${v.in-v.out}</div>
     </div>`).join('')}</div>`:'<div class="empty-state" style="padding:24px"><div class="ei">&#128247;</div>No data yet.</div>';
 
   // DONUTS
