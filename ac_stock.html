@@ -157,6 +157,7 @@ tbody td.tc{text-align:center}
 .rpt-mode-tabs{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap}
 .rpt-mode-btn{padding:8px 18px;border:2px solid #cbd5e1;border-radius:7px;background:#fff;font-size:12px;font-weight:700;cursor:pointer;color:#64748b;transition:all .2s}
 .rpt-mode-btn.active{border-color:#0d47a1;background:#0d47a1;color:#fff}
+.rpt-mode-btn:nth-child(4).active{border-color:#c2410c;background:#c2410c;color:#fff}
 .rpt-section{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.07);margin-bottom:16px;overflow-x:auto}
 .rpt-section-hdr{background:#0d47a1;color:#fff;padding:11px 16px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px}
 .rpt-table{width:100%;border-collapse:collapse}
@@ -585,6 +586,7 @@ tbody td.tc{text-align:center}
     <button class="rpt-mode-btn active" onclick="setRptMode('month')">&#128197; Month-wise</button>
     <button class="rpt-mode-btn" onclick="setRptMode('date')">&#128197; Date-wise</button>
     <button class="rpt-mode-btn" onclick="setRptMode('brand')">&#127970; Brand-wise</button>
+    <button class="rpt-mode-btn" onclick="setRptMode('monthbrand')">&#128200; Month &#10005; Brand Sale</button>
   </div>
 
   <div id="reportOutput"></div>
@@ -1388,7 +1390,7 @@ function renderDashboard(){
 /* ===== REPORTS ===== */
 function setRptMode(m){
   rptMode=m;
-  document.querySelectorAll('.rpt-mode-btn').forEach((b,i)=>b.classList.toggle('active',['month','date','brand'][i]===m));
+  document.querySelectorAll('.rpt-mode-btn').forEach((b,i)=>b.classList.toggle('active',['month','date','brand','monthbrand'][i]===m));
   renderReport();
 }
 
@@ -1414,7 +1416,8 @@ function renderReport(){
 
   if(rptMode==='month') renderMonthReport(data,out);
   else if(rptMode==='date') renderDateReport(data,out);
-  else renderBrandReport(data,out);
+  else if(rptMode==='brand') renderBrandReport(data,out);
+  else renderMonthBrandReport(data,out);
 }
 
 function renderMonthReport(data,out){
@@ -1511,6 +1514,144 @@ function renderBrandReport(data,out){
       </tbody>
     </table>
   </div>`;
+}
+
+function renderMonthBrandReport(data,out){
+  // Only OUT (sales) entries
+  const sales=data.filter(e=>e.type==='OUT');
+  if(!sales.length){out.innerHTML='<div class="empty-state" style="background:#fff;border-radius:12px;padding:48px"><div class="ei">&#128202;</div>No sale (OUT) data for selected filters.</div>';return;}
+
+  // Collect all unique months (YYYY-MM) and brands
+  const monthSet=new Set();
+  const brandSet=new Set();
+  sales.forEach(e=>{
+    const mm=fy(e.date)+'-'+(fm(e.date)<10?'0':'')+fm(e.date);
+    monthSet.add(mm);
+    brandSet.add(e.company);
+  });
+  const months=[...monthSet].sort();
+  const brands=[...brandSet].sort();
+
+  // Build matrix: matrix[month][brand] = qty sold
+  const matrix={};
+  const monthTotals={};
+  const brandTotals={};
+  months.forEach(m=>{matrix[m]={};monthTotals[m]=0;});
+  brands.forEach(b=>{brandTotals[b]=0;});
+  sales.forEach(e=>{
+    const mm=fy(e.date)+'-'+(fm(e.date)<10?'0':'')+fm(e.date);
+    matrix[mm][e.company]=(matrix[mm][e.company]||0)+e.qty;
+    monthTotals[mm]=(monthTotals[mm]||0)+e.qty;
+    brandTotals[e.company]=(brandTotals[e.company]||0)+e.qty;
+  });
+  const grandTotal=sales.reduce((s,e)=>s+e.qty,0);
+
+  // Max brand total for bar width
+  const maxBrand=Math.max(...Object.values(brandTotals),1);
+  const maxMonth=Math.max(...Object.values(monthTotals),1);
+
+  // Color palette for brands
+  const palette=['#1565c0','#e65100','#2e7d32','#6a1b9a','#00695c','#f57f17','#c62828','#37474f','#ad1457','#0277bd','#558b2f','#4527a0'];
+  const brandColor={};
+  brands.forEach((b,i)=>{brandColor[b]=palette[i%palette.length];});
+
+  // --- TABLE ---
+  const thStyle='padding:9px 11px;font-size:11px;font-weight:700;text-align:center;border:1px solid #c7d7f5;white-space:nowrap';
+  const thFirst='padding:9px 14px;font-size:11px;font-weight:700;text-align:left;border:1px solid #c7d7f5;white-space:nowrap;min-width:110px';
+  const tdBase='padding:8px 10px;text-align:center;border:1px solid #eef2f7;font-size:12px;font-weight:700';
+
+  let tableHTML=`
+  <div class="rpt-section" style="margin-bottom:16px">
+    <div class="rpt-section-hdr">&#128200; Month-wise Sale Report — Brand-wise (Units Sold / OUT)</div>
+    <div style="overflow-x:auto">
+    <table style="width:100%;border-collapse:collapse;min-width:600px">
+      <thead>
+        <tr style="background:#0d47a1;color:#fff">
+          <th style="${thFirst};background:#0d47a1;color:#fff">Month</th>
+          ${brands.map(b=>`<th style="${thStyle};background:${brandColor[b]};color:#fff">${b}</th>`).join('')}
+          <th style="${thStyle};background:#1a2332;color:#fff">TOTAL</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${months.map((mm,ri)=>{
+          const lbl=monthName(parseInt(mm.split('-')[1]))+' '+mm.split('-')[0];
+          const tot=monthTotals[mm]||0;
+          const barW=((tot/maxMonth)*80).toFixed(1);
+          return`<tr style="background:${ri%2===0?'#fff':'#f8fbff'}">
+            <td style="padding:8px 14px;border:1px solid #eef2f7;font-size:12px;font-weight:700;color:#0d47a1;white-space:nowrap">
+              ${lbl}
+            </td>
+            ${brands.map(b=>{
+              const v=matrix[mm][b]||0;
+              return`<td style="${tdBase};color:${v>0?brandColor[b]:'#cbd5e1'}">${v>0?v:'—'}</td>`;
+            }).join('')}
+            <td style="${tdBase};background:#fff3e0;color:#e65100;font-size:13px">
+              <div style="display:flex;align-items:center;gap:5px;justify-content:center">
+                <div style="width:${barW}px;max-width:80px;height:8px;background:#e65100;border-radius:4px;opacity:.7;flex-shrink:0"></div>
+                ${tot}
+              </div>
+            </td>
+          </tr>`;
+        }).join('')}
+        <tr style="background:#e8f0fe;font-weight:800">
+          <td style="padding:10px 14px;border:1px solid #c7d7f5;font-size:12px;font-weight:800;color:#0d47a1">TOTAL SALE</td>
+          ${brands.map(b=>{
+            const v=brandTotals[b]||0;
+            const bw=((v/maxBrand)*80).toFixed(1);
+            return`<td style="${tdBase};background:#fff;border:1px solid #c7d7f5">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:3px">
+                <span style="color:${brandColor[b]};font-size:13px">${v}</span>
+                <div style="width:${bw}px;max-width:80px;height:6px;background:${brandColor[b]};border-radius:3px;opacity:.75"></div>
+              </div>
+            </td>`;
+          }).join('')}
+          <td style="${tdBase};background:#0d47a1;color:#fff;font-size:15px;border:1px solid #0d47a1">${grandTotal}</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <!-- Brand-wise Sale Summary Cards -->
+  <div class="rpt-section">
+    <div class="rpt-section-hdr">&#127970; Brand-wise Sale Summary</div>
+    <div style="padding:16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px">
+      ${brands.sort((a,b)=>brandTotals[b]-brandTotals[a]).map((b,i)=>{
+        const v=brandTotals[b];
+        const pct=((v/grandTotal)*100).toFixed(1);
+        const bw=((v/maxBrand)*100).toFixed(1);
+        return`<div style="background:#fff;border-radius:12px;padding:14px 16px;border-left:4px solid ${brandColor[b]};box-shadow:0 2px 8px rgba(0,0,0,.06)">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <span style="font-size:11px;font-weight:700;color:${brandColor[b]};text-transform:uppercase;letter-spacing:.5px">${b}</span>
+            <span style="font-size:10px;background:#f1f5f9;padding:2px 8px;border-radius:10px;color:#475569;font-weight:700">#${i+1}</span>
+          </div>
+          <div style="font-size:26px;font-weight:900;color:#1a2332;line-height:1">${v}</div>
+          <div style="font-size:10px;color:#94a3b8;margin-bottom:8px">units sold · ${pct}% of total</div>
+          <div style="background:#f1f5f9;border-radius:6px;height:6px;overflow:hidden">
+            <div style="width:${bw}%;height:100%;background:${brandColor[b]};border-radius:6px;transition:width .7s"></div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div style="padding:0 16px 16px;display:flex;gap:10px;flex-wrap:wrap">
+      <div style="background:#fff3e0;border-radius:10px;padding:12px 20px;border-left:4px solid #e65100;flex:1;min-width:140px">
+        <div style="font-size:10px;color:#e65100;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Grand Total Sale</div>
+        <div style="font-size:28px;font-weight:900;color:#e65100">${grandTotal}</div>
+        <div style="font-size:11px;color:#94a3b8">${brands.length} brands · ${months.length} month${months.length>1?'s':''}</div>
+      </div>
+      <div style="background:#f0fdf4;border-radius:10px;padding:12px 20px;border-left:4px solid #2e7d32;flex:1;min-width:140px">
+        <div style="font-size:10px;color:#2e7d32;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Top Selling Brand</div>
+        <div style="font-size:22px;font-weight:900;color:#2e7d32">${brands.sort((a,b)=>brandTotals[b]-brandTotals[a])[0]}</div>
+        <div style="font-size:11px;color:#94a3b8">${brandTotals[brands.sort((a,b)=>brandTotals[b]-brandTotals[a])[0]]} units · ${((brandTotals[brands.sort((a,b)=>brandTotals[b]-brandTotals[a])[0]]/grandTotal)*100).toFixed(1)}% share</div>
+      </div>
+      <div style="background:#eff6ff;border-radius:10px;padding:12px 20px;border-left:4px solid #1565c0;flex:1;min-width:140px">
+        <div style="font-size:10px;color:#1565c0;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Best Month</div>
+        <div style="font-size:22px;font-weight:900;color:#1565c0">${(()=>{const bm=months.sort((a,b)=>monthTotals[b]-monthTotals[a])[0];return monthName(parseInt(bm.split('-')[1]))+' '+bm.split('-')[0];})()</div>
+        <div style="font-size:11px;color:#94a3b8">${monthTotals[months.sort((a,b)=>monthTotals[b]-monthTotals[a])[0]]} units sold</div>
+      </div>
+    </div>
+  </div>`;
+  out.innerHTML=tableHTML;
 }
 
 function clearReport(){
