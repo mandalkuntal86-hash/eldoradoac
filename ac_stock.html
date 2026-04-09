@@ -157,7 +157,6 @@ tbody td.tc{text-align:center}
 .rpt-mode-tabs{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap}
 .rpt-mode-btn{padding:8px 18px;border:2px solid #cbd5e1;border-radius:7px;background:#fff;font-size:12px;font-weight:700;cursor:pointer;color:#64748b;transition:all .2s}
 .rpt-mode-btn.active{border-color:#0d47a1;background:#0d47a1;color:#fff}
-.rpt-mode-btn:nth-child(4).active{border-color:#c2410c;background:#c2410c;color:#fff}
 .rpt-section{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.07);margin-bottom:16px;overflow-x:auto}
 .rpt-section-hdr{background:#0d47a1;color:#fff;padding:11px 16px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px}
 .rpt-table{width:100%;border-collapse:collapse}
@@ -586,7 +585,6 @@ tbody td.tc{text-align:center}
     <button class="rpt-mode-btn active" onclick="setRptMode('month')">&#128197; Month-wise</button>
     <button class="rpt-mode-btn" onclick="setRptMode('date')">&#128197; Date-wise</button>
     <button class="rpt-mode-btn" onclick="setRptMode('brand')">&#127970; Brand-wise</button>
-    <button class="rpt-mode-btn" onclick="setRptMode('monthbrand')">&#128200; Month &#10005; Brand Sale</button>
   </div>
 
   <div id="reportOutput"></div>
@@ -1390,7 +1388,7 @@ function renderDashboard(){
 /* ===== REPORTS ===== */
 function setRptMode(m){
   rptMode=m;
-  document.querySelectorAll('.rpt-mode-btn').forEach((b,i)=>b.classList.toggle('active',['month','date','brand','monthbrand'][i]===m));
+  document.querySelectorAll('.rpt-mode-btn').forEach((b,i)=>b.classList.toggle('active',['month','date','brand'][i]===m));
   renderReport();
 }
 
@@ -1416,8 +1414,7 @@ function renderReport(){
 
   if(rptMode==='month') renderMonthReport(data,out);
   else if(rptMode==='date') renderDateReport(data,out);
-  else if(rptMode==='brand') renderBrandReport(data,out);
-  else renderMonthBrandReport(data,out);
+  else renderBrandReport(data,out);
 }
 
 function renderMonthReport(data,out){
@@ -1514,117 +1511,6 @@ function renderBrandReport(data,out){
       </tbody>
     </table>
   </div>`;
-}
-
-function renderMonthBrandReport(data,out){
-  var sales=data.filter(function(e){return e.type==='OUT';});
-  if(!sales.length){out.innerHTML='<div class="empty-state" style="background:#fff;border-radius:12px;padding:48px"><div class="ei">&#128202;</div>No sale (OUT) data for selected filters.</div>';return;}
-
-  var monthSet={}, brandSet={};
-  sales.forEach(function(e){
-    var mm=fy(e.date)+'-'+(fm(e.date)<10?'0':'')+fm(e.date);
-    monthSet[mm]=1; brandSet[e.company]=1;
-  });
-  var months=Object.keys(monthSet).sort();
-  var brands=Object.keys(brandSet).sort();
-
-  var matrix={}, monthTotals={}, brandTotals={};
-  months.forEach(function(m){matrix[m]={};monthTotals[m]=0;});
-  brands.forEach(function(b){brandTotals[b]=0;});
-  sales.forEach(function(e){
-    var mm=fy(e.date)+'-'+(fm(e.date)<10?'0':'')+fm(e.date);
-    matrix[mm][e.company]=(matrix[mm][e.company]||0)+e.qty;
-    monthTotals[mm]=(monthTotals[mm]||0)+e.qty;
-    brandTotals[e.company]=(brandTotals[e.company]||0)+e.qty;
-  });
-  var grandTotal=sales.reduce(function(s,e){return s+e.qty;},0);
-
-  var maxBrand=1, maxMonth=1;
-  brands.forEach(function(b){if(brandTotals[b]>maxBrand)maxBrand=brandTotals[b];});
-  months.forEach(function(m){if(monthTotals[m]>maxMonth)maxMonth=monthTotals[m];});
-
-  var palette=['#1565c0','#e65100','#2e7d32','#6a1b9a','#00695c','#f57f17','#c62828','#37474f','#ad1457','#0277bd','#558b2f','#4527a0'];
-  var brandColor={};
-  brands.forEach(function(b,i){brandColor[b]=palette[i%palette.length];});
-
-  // Pre-compute sorted brands by total
-  var brandsSorted=brands.slice().sort(function(a,b){return brandTotals[b]-brandTotals[a];});
-  var topBrand=brandsSorted[0];
-  var topBrandQty=brandTotals[topBrand];
-  var topBrandPct=grandTotal?((topBrandQty/grandTotal)*100).toFixed(1):'0';
-
-  // Best month
-  var bestMonth=months.slice().sort(function(a,b){return monthTotals[b]-monthTotals[a];})[0];
-  var bestMonthLbl=monthName(parseInt(bestMonth.split('-')[1]))+' '+bestMonth.split('-')[0];
-  var bestMonthQty=monthTotals[bestMonth];
-
-  var thS='padding:9px 11px;font-size:11px;font-weight:700;text-align:center;border:1px solid #c7d7f5;white-space:nowrap';
-  var thF='padding:9px 14px;font-size:11px;font-weight:700;text-align:left;border:1px solid #c7d7f5;white-space:nowrap;min-width:110px';
-  var tdB='padding:8px 10px;text-align:center;border:1px solid #eef2f7;font-size:12px;font-weight:700';
-
-  // Build header row
-  var hdrCols='';
-  brands.forEach(function(b){
-    hdrCols+='<th style="'+thS+';background:'+brandColor[b]+';color:#fff">'+b+'</th>';
-  });
-
-  // Build data rows
-  var dataRows='';
-  months.forEach(function(mm,ri){
-    var lbl=monthName(parseInt(mm.split('-')[1]))+' '+mm.split('-')[0];
-    var tot=monthTotals[mm]||0;
-    var barW=((tot/maxMonth)*80).toFixed(1);
-    var bg=ri%2===0?'#fff':'#f8fbff';
-    var cells='';
-    brands.forEach(function(b){
-      var v=matrix[mm][b]||0;
-      cells+='<td style="'+tdB+';color:'+(v>0?brandColor[b]:'#cbd5e1')+'">'+(v>0?v:'&mdash;')+'</td>';
-    });
-    dataRows+='<tr style="background:'+bg+'"><td style="padding:8px 14px;border:1px solid #eef2f7;font-size:12px;font-weight:700;color:#0d47a1;white-space:nowrap">'+lbl+'</td>'+cells+'<td style="'+tdB+';background:#fff3e0;color:#e65100;font-size:13px"><span style="display:inline-flex;align-items:center;gap:5px"><span style="display:inline-block;width:'+barW+'px;max-width:80px;height:8px;background:#e65100;border-radius:4px;opacity:.7;flex-shrink:0"></span>'+tot+'</span></td></tr>';
-  });
-
-  // Build total row
-  var totCols='';
-  brands.forEach(function(b){
-    var v=brandTotals[b]||0;
-    var bw=((v/maxBrand)*80).toFixed(1);
-    totCols+='<td style="'+tdB+';background:#fff;border:1px solid #c7d7f5"><div style="display:flex;flex-direction:column;align-items:center;gap:3px"><span style="color:'+brandColor[b]+';font-size:13px">'+v+'</span><div style="width:'+bw+'px;max-width:80px;height:6px;background:'+brandColor[b]+';border-radius:3px;opacity:.75"></div></div></td>';
-  });
-
-  // Build brand summary cards
-  var cards='';
-  brandsSorted.forEach(function(b,i){
-    var v=brandTotals[b];
-    var pct=grandTotal?((v/grandTotal)*100).toFixed(1):'0';
-    var bw=((v/maxBrand)*100).toFixed(1);
-    cards+='<div style="background:#fff;border-radius:12px;padding:14px 16px;border-left:4px solid '+brandColor[b]+';box-shadow:0 2px 8px rgba(0,0,0,.06)"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span style="font-size:11px;font-weight:700;color:'+brandColor[b]+';text-transform:uppercase;letter-spacing:.5px">'+b+'</span><span style="font-size:10px;background:#f1f5f9;padding:2px 8px;border-radius:10px;color:#475569;font-weight:700">#'+(i+1)+'</span></div><div style="font-size:26px;font-weight:900;color:#1a2332;line-height:1">'+v+'</div><div style="font-size:10px;color:#94a3b8;margin-bottom:8px">units sold &middot; '+pct+'% of total</div><div style="background:#f1f5f9;border-radius:6px;height:6px;overflow:hidden"><div style="width:'+bw+'%;height:100%;background:'+brandColor[b]+';border-radius:6px"></div></div></div>';
-  });
-
-  out.innerHTML=
-    '<div class="rpt-section" style="margin-bottom:16px">'+
-      '<div class="rpt-section-hdr">&#128200; Month-wise Sale Report &mdash; Brand-wise (Units Sold)</div>'+
-      '<div style="overflow-x:auto">'+
-      '<table style="width:100%;border-collapse:collapse;min-width:600px">'+
-        '<thead><tr style="background:#0d47a1;color:#fff">'+
-          '<th style="'+thF+';background:#0d47a1;color:#fff">Month</th>'+
-          hdrCols+
-          '<th style="'+thS+';background:#1a2332;color:#fff">TOTAL</th>'+
-        '</tr></thead>'+
-        '<tbody>'+
-          dataRows+
-          '<tr style="background:#e8f0fe;font-weight:800"><td style="padding:10px 14px;border:1px solid #c7d7f5;font-size:12px;font-weight:800;color:#0d47a1">TOTAL SALE</td>'+totCols+'<td style="'+tdB+';background:#0d47a1;color:#fff;font-size:15px;border:1px solid #0d47a1">'+grandTotal+'</td></tr>'+
-        '</tbody>'+
-      '</table></div>'+
-    '</div>'+
-    '<div class="rpt-section">'+
-      '<div class="rpt-section-hdr">&#127970; Brand-wise Sale Summary</div>'+
-      '<div style="padding:16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px">'+cards+'</div>'+
-      '<div style="padding:0 16px 16px;display:flex;gap:10px;flex-wrap:wrap">'+
-        '<div style="background:#fff3e0;border-radius:10px;padding:12px 20px;border-left:4px solid #e65100;flex:1;min-width:140px"><div style="font-size:10px;color:#e65100;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Grand Total Sale</div><div style="font-size:28px;font-weight:900;color:#e65100">'+grandTotal+'</div><div style="font-size:11px;color:#94a3b8">'+brands.length+' brands &middot; '+months.length+' month'+(months.length>1?'s':'')+'</div></div>'+
-        '<div style="background:#f0fdf4;border-radius:10px;padding:12px 20px;border-left:4px solid #2e7d32;flex:1;min-width:140px"><div style="font-size:10px;color:#2e7d32;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Top Selling Brand</div><div style="font-size:22px;font-weight:900;color:#2e7d32">'+topBrand+'</div><div style="font-size:11px;color:#94a3b8">'+topBrandQty+' units &middot; '+topBrandPct+'% share</div></div>'+
-        '<div style="background:#eff6ff;border-radius:10px;padding:12px 20px;border-left:4px solid #1565c0;flex:1;min-width:140px"><div style="font-size:10px;color:#1565c0;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Best Month</div><div style="font-size:22px;font-weight:900;color:#1565c0">'+bestMonthLbl+'</div><div style="font-size:11px;color:#94a3b8">'+bestMonthQty+' units sold</div></div>'+
-      '</div>'+
-    '</div>';
 }
 
 function clearReport(){
