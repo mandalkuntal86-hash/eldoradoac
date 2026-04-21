@@ -612,6 +612,30 @@ tbody td.tc{text-align:center}
     <button class="btn-guest" onclick="continueAsGuest()">👁 Continue as Guest (View Only)</button>
   </div>
 </div>
+<!-- EDIT SALE MODAL -->
+<div class="modal-overlay" id="editSaleModal">
+  <div class="modal" style="max-width:380px">
+    <h3 style="color:#0d47a1">✏️ Edit Sale Entry</h3>
+    <div id="editSaleInfo" style="font-size:12px;color:#475569;margin-bottom:14px;padding:8px 10px;background:#f0f6ff;border-radius:8px;line-height:1.7"></div>
+    <div class="form-group" style="margin-bottom:12px">
+      <label style="font-size:11px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:4px">Sale Date</label>
+      <input type="date" id="es-date" style="width:100%;padding:8px 10px;border:1.5px solid #cbd5e1;border-radius:7px;font-size:13px;color:#1a2332"/>
+    </div>
+    <div class="form-group" style="margin-bottom:12px">
+      <label style="font-size:11px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:4px">Quantity Sold</label>
+      <input type="number" id="es-qty" min="1" style="width:100%;padding:8px 10px;border:1.5px solid #cbd5e1;border-radius:7px;font-size:13px;color:#1a2332"/>
+    </div>
+    <div class="form-group" style="margin-bottom:4px">
+      <label style="font-size:11px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:4px">Remarks</label>
+      <input type="text" id="es-remarks" style="width:100%;padding:8px 10px;border:1.5px solid #cbd5e1;border-radius:7px;font-size:13px;color:#1a2332" placeholder="e.g. Sale, Return, Adjustment…"/>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeEditSaleModal()">Cancel</button>
+      <button class="btn-primary" onclick="saveEditedSale()">✔ Save Changes</button>
+    </div>
+  </div>
+</div>
+
 <!-- CONFIRM MODAL -->
 <div class="modal-overlay" id="confirmModal">
   <div class="modal">
@@ -1238,12 +1262,15 @@ function editProductEntries(key){
   html+=`<table style="width:100%;border-collapse:collapse;font-size:12px">`;
   html+=`<tr style="background:#f0f6ff"><th style="padding:5px 8px;text-align:left">Date</th><th>Type</th><th>Qty</th><th>NLC</th><th colspan="2"></th></tr>`;
   grp.sort((a,b)=>a.date.localeCompare(b.date)).forEach(e=>{
+    const editBtn = e.type==='OUT'
+      ? `<button class="btn-edit" style="padding:2px 7px;background:#fff7ed;color:#c2410c" onclick="editSaleEntry(${e.id})" title="Edit Sale">✏️ Edit Sale</button>`
+      : `<button class="btn-edit" style="padding:2px 7px;background:#e8f5e9;color:#2e7d32" onclick="editEntryFromHistory(${e.id})">✏️</button>`;
     html+=`<tr style="border-bottom:1px solid #f1f5f9">
       <td style="padding:5px 8px">${fmtDate(e.date)}</td>
       <td><span class="badge ${e.type==='IN'?'badge-in':'badge-out'}">${e.type==='IN'?'▲ IN':'▼ OUT'}</span></td>
       <td style="text-align:center;font-weight:700">${e.qty}</td>
       <td>₹${e.nlc.toLocaleString('en-IN',{minimumFractionDigits:2})}</td>
-      <td><button class="btn-edit" style="padding:2px 7px;background:#e8f5e9;color:#2e7d32" onclick="editEntryFromHistory(${e.id})">✏️</button></td>
+      <td>${editBtn}</td>
       <td><button class="btn-del" style="padding:2px 7px" onclick="deleteEntry(${e.id})">✕</button></td>
     </tr>`;
   });
@@ -1281,6 +1308,75 @@ function deleteEntry(id){
   document.querySelector('#confirmModal .modal-actions').innerHTML=`<button class="btn-secondary" onclick="closeModal()">Cancel</button><button class="btn-primary" style="background:#c62828" onclick="confirmDelete()">Yes, Delete</button>`;
   document.querySelector('#confirmModal h3').textContent='⚠️ Confirm Delete';
   toast('Entry removed.');
+}
+
+/* ===== EDIT SALE (OUT entries) ===== */
+let editSaleId = null;
+
+function editSaleEntry(id){
+  if(!requireAdmin()) return;
+  const e = stock.find(x => x.id === id);
+  if(!e || e.type !== 'OUT'){ toast('Sale entry not found.', false); return; }
+  editSaleId = id;
+
+  // Calculate max allowed qty: current balance + this sale's qty
+  const key = e.company + '||' + e.model + '||' + e.capacity;
+  const grp = stock.filter(x => x.company+'||'+x.model+'||'+x.capacity === key);
+  const currentBalance = grp.reduce((s,x)=>s+(x.type==='IN'?x.qty:-x.qty),0);
+  const maxQty = currentBalance + e.qty; // restore this sale then re-sell
+
+  document.getElementById('editSaleInfo').innerHTML =
+    `<b>${e.company} — ${e.model}</b> &nbsp;|&nbsp; ${e.capacity || '—'}<br>
+     Original sale: <b>${e.qty} unit${e.qty>1?'s':''}</b> on ${fmtDate(e.date)}<br>
+     <span style="color:#0d47a1">Max allowed qty: <b>${maxQty}</b></span>`;
+  document.getElementById('es-date').value = e.date;
+  document.getElementById('es-qty').value = e.qty;
+  document.getElementById('es-qty').max = maxQty;
+  document.getElementById('es-remarks').value = e.remarks || 'Sale';
+
+  // Close history modal if open, open edit sale modal
+  closeModal();
+  document.getElementById('editSaleModal').classList.add('open');
+}
+
+function closeEditSaleModal(){
+  editSaleId = null;
+  document.getElementById('editSaleModal').classList.remove('open');
+}
+
+function saveEditedSale(){
+  if(!requireAdmin()){ closeEditSaleModal(); return; }
+  if(!editSaleId){ closeEditSaleModal(); return; }
+
+  const e = stock.find(x => x.id === editSaleId);
+  if(!e){ toast('Entry not found.', false); closeEditSaleModal(); return; }
+
+  const newDate = document.getElementById('es-date').value;
+  const newQty  = parseInt(document.getElementById('es-qty').value) || 0;
+  const newRem  = document.getElementById('es-remarks').value.trim() || 'Sale';
+
+  if(!newDate){ toast('Please select a date.', false); return; }
+  if(newQty < 1){ toast('Quantity must be ≥ 1.', false); return; }
+
+  // Validate: available balance (excluding this sale) must be >= newQty
+  const key = e.company + '||' + e.model + '||' + e.capacity;
+  const grp = stock.filter(x => x.company+'||'+x.model+'||'+x.capacity === key);
+  const balWithoutThisSale = grp.reduce((s,x)=>{
+    if(x.id === editSaleId) return s; // exclude current
+    return s + (x.type==='IN' ? x.qty : -x.qty);
+  }, 0);
+  if(newQty > balWithoutThisSale){
+    toast(`Only ${balWithoutThisSale} unit${balWithoutThisSale>1?'s':''} available — reduce qty.`, false);
+    return;
+  }
+
+  e.date    = newDate;
+  e.qty     = newQty;
+  e.remarks = newRem;
+
+  save(); computeClosing(); updateSummary(); renderTable(); updateCompanyFilters(); renderDashboard();
+  closeEditSaleModal();
+  toast(`✔ Sale updated — ${newQty} unit${newQty>1?'s':''} on ${fmtDate(newDate)}`);
 }
 
 /* ===== DASHBOARD ===== */
