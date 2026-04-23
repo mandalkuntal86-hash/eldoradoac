@@ -17,9 +17,8 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:linear-gradient(135deg,#
 .header-sub{background:rgba(0,0,0,.18);padding:5px 24px;font-size:11px;opacity:.9;display:flex;gap:20px;flex-wrap:wrap}
 
 /* TABS */
-.tabs{display:flex;background:#fff;border-bottom:2px solid #1976d2;padding:0 20px;overflow-x:auto;scrollbar-width:none}
-.tabs::-webkit-scrollbar{display:none}
-.tab-btn{padding:11px 16px;font-size:13px;font-weight:700;border:none;background:none;cursor:pointer;color:#64748b;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap;display:flex;align-items:center;gap:6px;transition:all .2s;flex-shrink:0}
+.tabs{display:flex;background:#fff;border-bottom:2px solid #1976d2;padding:0 20px;overflow-x:auto}
+.tab-btn{padding:11px 18px;font-size:13px;font-weight:700;border:none;background:none;cursor:pointer;color:#64748b;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap;display:flex;align-items:center;gap:6px;transition:all .2s}
 .tab-btn.active{color:#0d47a1;border-bottom-color:#0d47a1;background:#f0f6ff}
 .tab-btn:hover:not(.active){background:#f8fafc;color:#1976d2}
 .tab-icon{font-size:15px}
@@ -209,13 +208,6 @@ tbody td.tc{text-align:center}
 .empty-cards .ei{font-size:44px;margin-bottom:10px}
 .cards-footer{padding:12px 20px;font-size:12px;color:#64748b;border-top:1px solid #f1f5f9;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;background:#fff}
 
-/* COOLER CARD */
-.cooler-card{background:#fff;border-radius:20px;box-shadow:0 4px 24px rgba(0,0,0,.08);overflow:hidden;transition:transform .2s,box-shadow .2s;position:relative}
-.cooler-card:hover{transform:translateY(-4px);box-shadow:0 12px 36px rgba(0,0,0,.14)}
-.cooler-card::before{content:'';position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,#00695c,#26a69a)}
-.cooler-card.stock-out::before{background:linear-gradient(90deg,#94a3b8,#cbd5e1)}
-.cooler-card.stock-out{opacity:.72}
-
 /* TOAST */
 #toast{position:fixed;bottom:24px;right:24px;background:#0d47a1;color:#fff;padding:12px 20px;border-radius:9px;font-size:13px;font-weight:700;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,.22);max-width:calc(100vw - 48px)}
 #toast.show{opacity:1}
@@ -227,12 +219,6 @@ tbody td.tc{text-align:center}
 .modal h3{font-size:16px;font-weight:700;margin-bottom:14px;color:#c62828}
 .modal-actions{display:flex;gap:10px;margin-top:20px;justify-content:flex-end}
 
-@media(max-width:960px) and (min-width:701px){
-  .tab-btn{padding:10px 12px;font-size:12px;gap:4px}
-  .tab-icon{font-size:14px}
-  .dash-row.three{grid-template-columns:1fr 1fr}
-  .kpi-grid{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
-}
 @media(max-width:700px){
   /* HEADER */
   .header-top{padding:8px 12px 6px;gap:6px}
@@ -246,10 +232,10 @@ tbody td.tc{text-align:center}
   .header-sub{padding:4px 12px;font-size:10px;gap:6px}
   /* FIREBASE BANNER */
   #fb-config-banner{margin:8px 10px 0;padding:10px 12px;font-size:12px}
-  /* TABS — icon only on mobile, scrollable */
-  .tabs{padding:0;justify-content:space-around}
-  .tab-btn{padding:10px 0;font-size:0;gap:0;flex:1;justify-content:center;min-width:0}
-  .tab-btn .tab-icon{font-size:19px}
+  /* TABS — show only icons */
+  .tabs{padding:0 2px}
+  .tab-btn{padding:10px 12px;font-size:0;gap:0}
+  .tab-btn .tab-icon{font-size:18px}
   /* PANELS */
   .panel{padding:12px}
   /* DASHBOARD */
@@ -374,11 +360,10 @@ tbody td.tc{text-align:center}
 
 <!-- TABS -->
 <div class="tabs">
-  <button class="tab-btn active" data-tab="dashboard" onclick="switchTab('dashboard')"><span class="tab-icon">&#128200;</span> Dashboard</button>
-  <button class="tab-btn" data-tab="entry" onclick="switchTab('entry')"><span class="tab-icon">&#43;</span> Stock Entry</button>
-  <button class="tab-btn" data-tab="ledger" onclick="switchTab('ledger')"><span class="tab-icon">&#128196;</span> Stock Ledger</button>
-  <button class="tab-btn" data-tab="cooler" onclick="switchTab('cooler')"><span class="tab-icon">&#10052;</span> Cooler Stock</button>
-  <button class="tab-btn" data-tab="report" onclick="switchTab('report')"><span class="tab-icon">&#128202;</span> Reports</button>
+  <button class="tab-btn active" onclick="switchTab('dashboard')"><span class="tab-icon">&#128200;</span> Dashboard</button>
+  <button class="tab-btn" onclick="switchTab('entry')"><span class="tab-icon">&#43;</span> Stock Entry</button>
+  <button class="tab-btn" onclick="switchTab('ledger')"><span class="tab-icon">&#128196;</span> Stock Ledger</button>
+  <button class="tab-btn" onclick="switchTab('report')"><span class="tab-icon">&#128202;</span> Reports</button>
 </div>
 
 <!-- ============ DASHBOARD PANEL ============ -->
@@ -558,92 +543,6 @@ tbody td.tc{text-align:center}
     <div class="cards-footer">
       <span id="tableCount">0 records</span>
       <span id="tableNLC"></span>
-    </div>
-  </div>
-</div>
-
-<!-- ============ COOLER STOCK PANEL ============ -->
-<div class="panel" id="panel-cooler">
-  <div class="summary-grid" id="coolerSummaryCards"></div>
-
-  <div class="add-product-bar">
-    <button class="btn-add-product" onclick="toggleCoolerForm()" id="addCoolerBtn" style="background:#00695c">
-      <span class="plus-icon">&#43;</span> Add Cooler
-    </button>
-    <span id="coolerFormHint" style="font-size:12px;color:#94a3b8;font-style:italic">Click to add a new cooler stock entry</span>
-  </div>
-
-  <div class="form-card-wrap" id="coolerFormWrap">
-    <div class="form-card" style="border-top-color:#00897b">
-      <div class="form-card-header">
-        <h2 style="color:#00695c">&#10052; New Cooler Stock Entry</h2>
-        <button class="btn-close-form" onclick="closeCoolerForm()">&#215;</button>
-      </div>
-      <div class="form-grid">
-        <div class="form-group">
-          <label>Brand / Company</label>
-          <input type="text" id="cf-brand" placeholder="e.g. Blue Star, Voltas, Haier" list="coolerBrandList"/>
-          <datalist id="coolerBrandList">
-            <option value="Blue Star"/><option value="Voltas"/><option value="Haier"/>
-            <option value="Symphony"/><option value="Bajaj"/><option value="Kenstar"/>
-            <option value="Orient"/><option value="Usha"/><option value="Crompton"/>
-            <option value="Maharaja Whiteline"/>
-          </datalist>
-        </div>
-        <div class="form-group">
-          <label>Model No.</label>
-          <input type="text" id="cf-model" placeholder="e.g. PC360H"/>
-        </div>
-        <div class="form-group">
-          <label>Size / Capacity (Litres)</label>
-          <input type="text" id="cf-size" placeholder="Select or type" list="coolerSizeList" autocomplete="off"/>
-          <datalist id="coolerSizeList">
-            <option value="10 L"/><option value="15 L"/><option value="20 L"/>
-            <option value="25 L"/><option value="30 L"/><option value="40 L"/>
-            <option value="50 L"/><option value="60 L"/><option value="70 L"/>
-            <option value="80 L"/><option value="100 L"/>
-          </datalist>
-        </div>
-        <div class="form-group">
-          <label>Quantity</label>
-          <input type="number" id="cf-qty" min="1" value="1"/>
-        </div>
-        <div class="form-group">
-          <label>NLC — Net Landing Cost (&#8377;)</label>
-          <input type="number" id="cf-nlc" min="0" step="0.01" placeholder="e.g. 6500"/>
-        </div>
-        <div class="form-group" style="grid-column:1/-1">
-          <label>Remarks</label>
-          <textarea id="cf-remarks" placeholder="Optional notes..."></textarea>
-        </div>
-      </div>
-      <div class="form-actions">
-        <button class="btn-primary" onclick="addCoolerEntry()" id="addCoolerEntryBtn" style="background:#00695c">&#43; Add Cooler Entry</button>
-        <button class="btn-secondary" onclick="clearCoolerForm()">Clear</button>
-        <button class="btn-danger-outline" id="cancelCoolerEditBtn" onclick="cancelCoolerEdit()" style="display:none">Cancel Edit</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Cooler Ledger -->
-  <div class="table-card" style="margin-top:10px">
-    <div class="table-toolbar">
-      <h2 style="color:#00695c">&#10052; Cooler Stock Ledger</h2>
-      <div class="toolbar-right">
-        <input class="search-box" type="text" id="cooler-search" placeholder="Search brand / model..." oninput="renderCoolerTable()"/>
-        <select class="filter-select" id="cflt-brand" onchange="renderCoolerTable()">
-          <option value="">All Brands</option>
-        </select>
-        <select class="filter-select" id="cflt-size" onchange="renderCoolerTable()">
-          <option value="">All Sizes</option>
-        </select>
-        <button class="btn-excel" onclick="exportCoolerCSV()" style="background:#00695c">&#128190; Export</button>
-      </div>
-    </div>
-    <div class="cards-grid" id="coolerCards"></div>
-    <div class="cards-footer">
-      <span id="coolerCount">0 products</span>
-      <span id="coolerAvgNlc"></span>
     </div>
   </div>
 </div>
@@ -830,7 +729,6 @@ const FIREBASE_CONFIG = {
   appId:             "1:1000020486321:web:99d1731c9060e84d2b9a90"
 };
 const FB_PATH = 'acStock2'; // Realtime DB path — change if needed
-const FB_COOLER_PATH = 'coolerStock2';
 
 /* ===== FIREBASE INIT ===== */
 let fbDb = null;
@@ -885,10 +783,10 @@ function initFirebase() {
       }
     });
 
-    // Real-time AC data listener
+    // Real-time data listener
     fbDb.ref(FB_PATH).on('value', snap => {
       const raw = snap.val();
-      stock = raw ? Object.values(raw).filter(e => e && e.id) : [];
+      stock = raw ? Object.values(raw) : [];
       localStorage.setItem('acStock2', JSON.stringify(stock));
       computeClosing(); updateSummary(); renderTable(); updateCompanyFilters(); renderDashboard();
     }, err => {
@@ -906,14 +804,6 @@ function initFirebase() {
       }
     });
 
-    // Real-time COOLER data listener — registered alongside AC listener
-    fbDb.ref(FB_COOLER_PATH).on('value', snap => {
-      const raw = snap.val();
-      coolerStock = raw ? Object.values(raw).filter(e => e && e.id) : [];
-      localStorage.setItem('coolerStock2', JSON.stringify(coolerStock));
-      computeCoolerClosing(); renderCoolerTable(); updateCoolerSummary(); updateCoolerFilters();
-    }, err => console.warn('Cooler Firebase read:', err.message));
-
   } catch (e) {
     console.error('Firebase init error:', e);
     fbSetStatus('offline', '❌ ' + (e.message || 'Init Failed'));
@@ -925,10 +815,6 @@ let stock = JSON.parse(localStorage.getItem('acStock2')||'[]');
 let editId=null, deleteId=null;
 let invType='Inverter', repType='Reporting', selectedStar=0;
 let rptMode='month';
-
-/* ===== COOLER STATE ===== */
-let coolerStock = JSON.parse(localStorage.getItem('coolerStock2')||'[]');
-let coolerEditId = null;
 
 /* ===== SAVE — writes to Firebase, falls back to localStorage ===== */
 function save() {
@@ -1359,18 +1245,12 @@ function deleteProduct(key){
   document.getElementById('confirmModal').classList.add('open');
 }
 function confirmDelete(){
-  if(typeof deleteId==='string'&&deleteId.startsWith('COOLER||')){
-    const key=deleteId.replace('COOLER||','');
-    coolerStock=coolerStock.filter(e=>e.brand+'||'+e.model+'||'+e.size!==key);
-    saveCooler();computeCoolerClosing();updateCoolerSummary();renderCoolerTable();updateCoolerFilters();
-  } else if(typeof deleteId==='string'&&deleteId.includes('||')){
+  if(typeof deleteId==='string'&&deleteId.includes('||')){
     stock=stock.filter(e=>e.company+'||'+e.model+'||'+e.capacity!==deleteId);
-    save();computeClosing();updateSummary();renderTable();updateCompanyFilters();renderDashboard();
   } else {
     stock=stock.filter(e=>e.id!==deleteId);
-    save();computeClosing();updateSummary();renderTable();updateCompanyFilters();renderDashboard();
   }
-  closeModal();toast('Deleted.');deleteId=null;
+  save();computeClosing();updateSummary();renderTable();updateCompanyFilters();renderDashboard();closeModal();toast('Deleted.');deleteId=null;
 }
 
 /* Show history modal for a product */
@@ -1513,8 +1393,6 @@ function renderDashboard(){
   const mthOut=stock.filter(e=>e.type==='OUT'&&fy(e.date)===curYear&&fm(e.date)===curMonth).reduce((s,e)=>s+e.qty,0);
 
   // KPI
-  const cIn=coolerStock.filter(e=>e.type==='IN').reduce((s,e)=>s+e.qty,0);
-  const cOut=coolerStock.filter(e=>e.type==='OUT').reduce((s,e)=>s+e.qty,0);
   document.getElementById('kpiCards').innerHTML=`
     <div class="kpi"><div class="kpi-icon">📥</div><div class="kpi-label">Total Stock In</div><div class="kpi-val">${tIn}</div><div class="kpi-sub">All time units received</div></div>
     <div class="kpi orange"><div class="kpi-icon">📤</div><div class="kpi-label">Total Stock Out</div><div class="kpi-val">${tOut}</div><div class="kpi-sub">All time units dispatched</div></div>
@@ -1523,7 +1401,6 @@ function renderDashboard(){
     <div class="kpi purple"><div class="kpi-icon">🏷️</div><div class="kpi-label">Brands</div><div class="kpi-val">${brands}</div><div class="kpi-sub">Companies tracked</div></div>
     <div class="kpi gold"><div class="kpi-icon">📅</div><div class="kpi-label">This Month IN</div><div class="kpi-val">${mthIn}</div><div class="kpi-sub">OUT: ${mthOut} units</div></div>
     <div class="kpi red"><div class="kpi-icon">📋</div><div class="kpi-label">Total Entries</div><div class="kpi-val">${stock.length}</div><div class="kpi-sub">All records</div></div>
-    <div class="kpi" style="--kpi-color:#00695c"><div class="kpi-icon">❄</div><div class="kpi-label">Cooler Stock</div><div class="kpi-val">${cIn-cOut}</div><div class="kpi-sub">Balance | IN:${cIn} OUT:${cOut}</div></div>
   `;
 
   // Year selector
@@ -1759,294 +1636,22 @@ function exportCSV(){
   toast('Ledger exported!');
 }
 
-/* ===== COOLER STOCK ===== */
-
-function saveCooler(){
-  localStorage.setItem('coolerStock2', JSON.stringify(coolerStock));
-  if(!fbDb || !fbConnected) return;
-  const obj={};coolerStock.forEach(e=>{ obj['c_'+e.id]=e; });
-  fbDb.ref(FB_COOLER_PATH).set(obj).catch(err=>console.warn('Cooler Firebase write:', err.message));
-}
-
-function computeCoolerClosing(){
-  const g={};
-  coolerStock.forEach(e=>{const k=e.brand+'||'+e.model+'||'+e.size;if(!g[k])g[k]=0;g[k]+=(e.type==='IN'?e.qty:-e.qty);e.closing=g[k];});
-}
-
-/* Form open/close */
-function toggleCoolerForm(){
-  const w=document.getElementById('coolerFormWrap'),b=document.getElementById('addCoolerBtn'),h=document.getElementById('coolerFormHint');
-  const isOpen=w.classList.contains('open');
-  if(isOpen){w.classList.remove('open');b.innerHTML='<span class="plus-icon">&#43;</span> Add Cooler';b.style.background='#00695c';h.textContent='Click to add a new cooler stock entry';}
-  else{w.classList.add('open');b.innerHTML='<span class="plus-icon" style="font-size:18px">&#8722;</span> Close Form';b.style.background='#e65100';h.textContent='Fill in the details and click Add Cooler Entry';setTimeout(()=>w.scrollIntoView({behavior:'smooth',block:'start'}),60);}
-}
-function closeCoolerForm(){
-  const w=document.getElementById('coolerFormWrap'),b=document.getElementById('addCoolerBtn'),h=document.getElementById('coolerFormHint');
-  w.classList.remove('open');b.innerHTML='<span class="plus-icon">&#43;</span> Add Cooler';b.style.background='#00695c';h.textContent='Click to add a new cooler stock entry';
-}
-
-/* Add/Edit */
-function addCoolerEntry(){
-  if(!requireAdmin()) return;
-  const brand=document.getElementById('cf-brand').value.trim();
-  const model=document.getElementById('cf-model').value.trim();
-  const size=document.getElementById('cf-size').value.trim();
-  const qty=parseInt(document.getElementById('cf-qty').value)||0;
-  const nlc=parseFloat(document.getElementById('cf-nlc').value)||0;
-  const remarks=document.getElementById('cf-remarks').value.trim();
-  if(!brand){toast('Enter brand name.',false);return;}
-  if(!model){toast('Enter model number.',false);return;}
-  if(!size){toast('Enter size/capacity.',false);return;}
-  if(!qty||qty<1){toast('Quantity must be ≥ 1.',false);return;}
-  if(!nlc||nlc<=0){toast('Enter valid NLC amount.',false);return;}
-  const entry={id:coolerEditId||Date.now(),type:'IN',brand,model,size,qty,nlc,remarks,closing:0,date:new Date().toISOString().split('T')[0]};
-  if(coolerEditId){const idx=coolerStock.findIndex(e=>e.id===coolerEditId);if(idx>-1)coolerStock[idx]=entry;coolerEditId=null;document.getElementById('addCoolerEntryBtn').textContent='+ Add Cooler Entry';document.getElementById('cancelCoolerEditBtn').style.display='none';toast('Cooler entry updated!');closeCoolerForm();}
-  else{coolerStock.push(entry);toast('✅ Cooler entry added!');closeCoolerForm();}
-  saveCooler();computeCoolerClosing();updateCoolerSummary();renderCoolerTable();updateCoolerFilters();clearCoolerForm();
-}
-
-function clearCoolerForm(){
-  ['cf-brand','cf-model','cf-size','cf-remarks'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('cf-qty').value=1;
-  document.getElementById('cf-nlc').value='';
-}
-
-function cancelCoolerEdit(){coolerEditId=null;document.getElementById('addCoolerEntryBtn').textContent='+ Add Cooler Entry';document.getElementById('cancelCoolerEditBtn').style.display='none';clearCoolerForm();closeCoolerForm();}
-
-/* Summary cards */
-function updateCoolerSummary(){
-  computeCoolerClosing();
-  const tIn=coolerStock.filter(e=>e.type==='IN').reduce((s,e)=>s+e.qty,0);
-  const tOut=coolerStock.filter(e=>e.type==='OUT').reduce((s,e)=>s+e.qty,0);
-  const brands=[...new Set(coolerStock.map(e=>e.brand))].length;
-  document.getElementById('coolerSummaryCards').innerHTML=`
-    <div class="sum-card"><div class="sum-label">Total Stock In</div><div class="sum-val">${tIn}</div><div class="sum-sub">Coolers received</div></div>
-    <div class="sum-card orange"><div class="sum-label">Total Stock Out</div><div class="sum-val">${tOut}</div><div class="sum-sub">Coolers dispatched</div></div>
-    <div class="sum-card green"><div class="sum-label">Closing Stock</div><div class="sum-val">${tIn-tOut}</div><div class="sum-sub">Current balance</div></div>
-    <div class="sum-card purple"><div class="sum-label">Brands</div><div class="sum-val">${brands}</div><div class="sum-sub">Brands tracked</div></div>
-    <div class="sum-card"><div class="sum-label">Total Entries</div><div class="sum-val">${coolerStock.length}</div><div class="sum-sub">All records</div></div>`;
-}
-
-/* Filters */
-function updateCoolerFilters(){
-  const brands=[...new Set(coolerStock.map(e=>e.brand))].sort();
-  const bSel=document.getElementById('cflt-brand');
-  if(bSel){const cur=bSel.value;bSel.innerHTML='<option value="">All Brands</option>';brands.forEach(b=>{const o=document.createElement('option');o.value=b;o.textContent=b;bSel.appendChild(o);});bSel.value=cur;}
-  const sizes=[...new Set(coolerStock.map(e=>e.size).filter(Boolean))].sort((a,b)=>(parseFloat(a)||0)-(parseFloat(b)||0));
-  const sSel=document.getElementById('cflt-size');
-  if(sSel){const cur=sSel.value;sSel.innerHTML='<option value="">All Sizes</option>';sizes.forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;sSel.appendChild(o);});sSel.value=cur;}
-}
-
-/* Sell cooler */
-function sellCooler(key){
-  if(!requireAdmin()) return;
-  const inp=document.getElementById('csell-qty-'+key);
-  const qty=parseInt(inp?.value)||0;
-  if(qty<1){toast('Enter quantity to sell.',false);return;}
-  const grp=coolerStock.filter(e=>e.brand+'||'+e.model+'||'+e.size===key);
-  const balance=grp.reduce((s,e)=>s+(e.type==='IN'?e.qty:-e.qty),0);
-  if(qty>balance){toast(`Only ${balance} unit${balance>1?'s':''} available!`,false);return;}
-  const ref=grp.find(e=>e.type==='IN');
-  const outEntry={id:Date.now(),date:new Date().toISOString().split('T')[0],type:'OUT',brand:ref.brand,model:ref.model,size:ref.size,qty,nlc:ref.nlc,remarks:'Sale',closing:0};
-  coolerStock.push(outEntry);
-  if(inp)inp.value=1;
-  saveCooler();computeCoolerClosing();updateCoolerSummary();renderCoolerTable();updateCoolerFilters();
-  toast(`✔ ${qty} cooler${qty>1?'s':''} sold — ${ref.brand} ${ref.model}`);
-}
-
-/* Delete cooler product */
-function deleteCoolerProduct(key){
-  if(!requireAdmin()) return;
-  const grp=coolerStock.filter(e=>e.brand+'||'+e.model+'||'+e.size===key);
-  if(!grp.length)return;
-  deleteId='COOLER||'+key;
-  document.getElementById('confirmMsg').textContent=`Delete ALL entries for ${grp[0].brand} — ${grp[0].model}? (${grp.length} record${grp.length>1?'s':''})`;
-  document.getElementById('confirmModal').classList.add('open');
-}
-
-/* Edit cooler product */
-function editCoolerProduct(key){
-  if(!requireAdmin()) return;
-  const grp=coolerStock.filter(e=>e.brand+'||'+e.model+'||'+e.size===key&&e.type==='IN');
-  if(!grp.length){toast('No entry found.',false);return;}
-  const e=grp.sort((a,b)=>b.id-a.id)[0];
-  coolerEditId=e.id;
-  document.getElementById('cf-brand').value=e.brand;
-  document.getElementById('cf-model').value=e.model;
-  document.getElementById('cf-size').value=e.size;
-  document.getElementById('cf-qty').value=e.qty;
-  document.getElementById('cf-nlc').value=e.nlc;
-  document.getElementById('cf-remarks').value=e.remarks||'';
-  document.getElementById('addCoolerEntryBtn').textContent='✓ Update Cooler Entry';
-  document.getElementById('cancelCoolerEditBtn').style.display='';
-  const w=document.getElementById('coolerFormWrap'),b=document.getElementById('addCoolerBtn'),h=document.getElementById('coolerFormHint');
-  w.classList.add('open');b.innerHTML='<span class="plus-icon" style="font-size:18px">&#8722;</span> Close Form';b.style.background='#e65100';h.textContent='Edit mode';
-  setTimeout(()=>w.scrollIntoView({behavior:'smooth',block:'start'}),60);
-  toast('Edit mode active.');
-}
-
-/* Render cooler cards */
-function renderCoolerTable(){
-  computeCoolerClosing();
-  const search=(document.getElementById('cooler-search')||{value:''}).value.toLowerCase();
-  const fbrand=(document.getElementById('cflt-brand')||{value:''}).value;
-  const fsize=(document.getElementById('cflt-size')||{value:''}).value;
-
-  const groups={};
-  coolerStock.forEach(e=>{
-    const k=e.brand+'||'+e.model+'||'+e.size;
-    if(!groups[k])groups[k]={key:k,brand:e.brand,model:e.model,size:e.size,nlc:e.nlc,totalIn:0,totalOut:0,firstDate:e.date,lastDate:e.date,remarks:e.remarks||''};
-    if(e.type==='IN'){groups[k].totalIn+=e.qty;groups[k].nlc=e.nlc;}
-    else groups[k].totalOut+=e.qty;
-    if(e.date<groups[k].firstDate)groups[k].firstDate=e.date;
-    if(e.date>groups[k].lastDate)groups[k].lastDate=e.date;
-  });
-
-  let products=Object.values(groups);
-  if(search)products=products.filter(p=>(p.brand+p.model).toLowerCase().includes(search));
-  if(fbrand)products=products.filter(p=>p.brand===fbrand);
-  if(fsize)products=products.filter(p=>p.size===fsize);
-  products.sort((a,b)=>a.brand.localeCompare(b.brand));
-
-  const container=document.getElementById('coolerCards');
-  if(!container)return;
-  if(!products.length){
-    container.innerHTML=`<div class="empty-cards"><div class="ei">&#10052;</div><div>No cooler products found.</div></div>`;
-    document.getElementById('coolerCount').textContent='0 products';
-    document.getElementById('coolerAvgNlc').textContent='';return;
-  }
-
-  container.innerHTML=products.map((p,i)=>{
-    const balance=p.totalIn-p.totalOut;
-    const outPct=p.totalIn>0?Math.round(p.totalOut/p.totalIn*100):0;
-    const balColor=balance>5?'#166534':balance>0?'#854d0e':'#9a3412';
-    const balBg=balance>5?'#dcfce7':balance>0?'#fef9c3':'#ffedd5';
-    const safeKey=p.key.replace(/'/g,"\\'");
-    const inputId='csell-qty-'+p.key;
-    return`<div class="cooler-card${balance<=0?' stock-out':''}">
-      <div class="pc-header">
-        <span class="pc-sl">#${i+1}</span>
-        <span class="badge" style="background:#e0f2f1;color:#00695c;font-size:10px;padding:3px 9px;border:1px solid #b2dfdb">&#10052; Cooler</span>
-      </div>
-      <div class="pc-brand">
-        <div class="pc-company" style="color:#00695c">&#10052; ${p.brand}</div>
-        <div class="pc-model">${p.model}</div>
-      </div>
-      <div style="padding:2px 16px 8px">
-        <span class="badge" style="background:#e0f7fa;color:#00838f;border:1px solid #b2ebf2;font-size:11px">&#127756; ${p.size}</span>
-      </div>
-      <div class="pc-divider"></div>
-      <div class="pc-details">
-        <div class="pc-detail"><span class="pc-detail-label">First Added</span><span class="pc-detail-val" style="font-size:11px">&#128197; ${fmtDate(p.firstDate)}</span></div>
-        <div class="pc-detail"><span class="pc-detail-label">Last Updated</span><span class="pc-detail-val" style="font-size:11px">&#128260; ${fmtDate(p.lastDate)}</span></div>
-        <div class="pc-detail"><span class="pc-detail-label">Stock IN</span><span class="pc-detail-val" style="color:#166534;font-size:15px">+${p.totalIn} <span style="font-size:10px;font-weight:600">units</span></span></div>
-        <div class="pc-detail"><span class="pc-detail-label">Sold OUT</span><span class="pc-detail-val" style="color:#9a3412;font-size:15px">&#8722;${p.totalOut} <span style="font-size:10px;font-weight:600">units</span></span></div>
-      </div>
-      <div style="padding:0 16px 10px">
-        <div style="display:flex;justify-content:space-between;font-size:10px;color:#94a3b8;margin-bottom:4px"><span>Sold ${outPct}%</span><span>Remaining ${100-outPct}%</span></div>
-        <div style="background:#f1f5f9;border-radius:8px;height:7px;overflow:hidden"><div style="height:100%;width:${outPct}%;background:linear-gradient(90deg,#ea580c,#fb923c);border-radius:8px;transition:width .6s"></div></div>
-      </div>
-      <div class="pc-nlc-row" style="background:linear-gradient(135deg,#e0f2f1,#b2dfdb);border-color:#80cbc4">
-        <div>
-          <div class="pc-nlc-label" style="color:#00695c">Net Landing Cost</div>
-          <div class="pc-nlc-val" style="color:#004d40">&#8377;${p.nlc.toLocaleString('en-IN',{minimumFractionDigits:2})}</div>
-        </div>
-        <div style="text-align:right">
-          <div style="font-size:9px;color:#64748b;font-weight:700;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">Balance</div>
-          <span style="font-size:26px;font-weight:900;color:${balColor};background:${balBg};padding:3px 16px;border-radius:12px;box-shadow:0 2px 8px ${balColor}22">${balance}</span>
-        </div>
-      </div>
-      ${balance>0?`<div class="pc-sell-panel">
-        <span class="pc-sell-label">&#128722; Sell:</span>
-        <input class="pc-sell-input" type="number" id="${inputId}" min="1" max="${balance}" value="1" placeholder="Qty"/>
-        <button class="btn-sell${isAdmin?'':' admin-locked'}" onclick="sellCooler('${safeKey}')" title="${isAdmin?'':'Admin only'}">Confirm Sale</button>
-        <span style="font-size:11px;color:#92400e;margin-left:auto;font-weight:700">Max: ${balance}</span>
-      </div>`:`<div style="padding:9px 16px;text-align:center;font-size:12px;color:#9a3412;font-weight:700;background:linear-gradient(135deg,#ffedd5,#fee2e2);letter-spacing:.3px">&#9888; Out of Stock</div>`}
-      ${p.remarks?`<div class="pc-remarks">&#128172; ${p.remarks}</div>`:''}
-      <div class="pc-footer">
-        <span class="pc-date">&#128197; ${fmtDate(p.lastDate)}</span>
-        <button class="btn-edit" onclick="coolerProductEntries('${safeKey}')">&#128203; History</button>
-        <button class="btn-edit" style="background:#e0f2f1;color:#00695c${isAdmin?'':';opacity:.45;cursor:not-allowed'}" onclick="editCoolerProduct('${safeKey}')" title="${isAdmin?'Edit':'Admin only'}">&#9999;&#65039;</button>
-        <button class="btn-del" style="${isAdmin?'':';opacity:.45;cursor:not-allowed'}" onclick="deleteCoolerProduct('${safeKey}')" title="${isAdmin?'Delete':'Admin only'}">&#128465;</button>
-      </div>
-    </div>`;
-  }).join('');
-  document.getElementById('coolerCount').textContent=`${products.length} product${products.length>1?'s':''}`;
-  const avg=products.length?products.reduce((s,p)=>s+p.nlc,0)/products.length:0;
-  document.getElementById('coolerAvgNlc').textContent=avg?`Avg NLC: ₹${avg.toLocaleString('en-IN',{minimumFractionDigits:2})}`:'';
-}
-
-/* Show history modal for a cooler product */
-function coolerProductEntries(key){
-  const grp=coolerStock.filter(e=>e.brand+'||'+e.model+'||'+e.size===key);
-  if(!grp.length)return;
-  const p=grp[0];
-  let html=`<b>${p.brand} — ${p.model}</b> &nbsp;|&nbsp; ${p.size}<br><br>`;
-  html+=`<table style="width:100%;border-collapse:collapse;font-size:12px">`;
-  html+=`<tr style="background:#e0f2f1"><th style="padding:5px 8px;text-align:left">Date</th><th>Type</th><th>Qty</th><th>NLC</th><th colspan="2"></th></tr>`;
-  grp.sort((a,b)=>a.date.localeCompare(b.date)).forEach(e=>{
-    html+=`<tr style="border-bottom:1px solid #f1f5f9">
-      <td style="padding:5px 8px">${fmtDate(e.date)}</td>
-      <td><span class="badge ${e.type==='IN'?'badge-in':'badge-out'}">${e.type==='IN'?'▲ IN':'▼ OUT'}</span></td>
-      <td style="text-align:center;font-weight:700">${e.qty}</td>
-      <td>₹${e.nlc.toLocaleString('en-IN',{minimumFractionDigits:2})}</td>
-      <td><button class="btn-del" style="padding:2px 7px" onclick="deleteCoolerEntry(${e.id})">✕</button></td>
-    </tr>`;
-  });
-  html+=`</table>`;
-  // Store original modal actions to restore later
-  const origActions=document.querySelector('#confirmModal .modal-actions').innerHTML;
-  const origTitle=document.querySelector('#confirmModal h3').textContent;
-  document.getElementById('confirmMsg').innerHTML=html;
-  document.querySelector('#confirmModal .modal-actions').innerHTML=`<button class="btn-secondary" onclick="restoreCoolerModal('${origTitle.replace(/'/g,"\\'")}')">Close</button>`;
-  document.querySelector('#confirmModal h3').textContent='📋 Cooler History';
-  document.getElementById('confirmModal').classList.add('open');
-}
-
-function restoreCoolerModal(title){
-  document.querySelector('#confirmModal .modal-actions').innerHTML=`<button class="btn-secondary" onclick="closeModal()">Cancel</button><button class="btn-primary" style="background:#c62828" onclick="confirmDelete()">Yes, Delete</button>`;
-  document.querySelector('#confirmModal h3').textContent=title||'⚠️ Confirm Delete';
-  closeModal();
-}
-
-function deleteCoolerEntry(id){
-  if(!requireAdmin()) return;
-  coolerStock=coolerStock.filter(e=>e.id!==id);
-  saveCooler();computeCoolerClosing();updateCoolerSummary();renderCoolerTable();updateCoolerFilters();
-  // restore modal defaults then close
-  document.querySelector('#confirmModal .modal-actions').innerHTML=`<button class="btn-secondary" onclick="closeModal()">Cancel</button><button class="btn-primary" style="background:#c62828" onclick="confirmDelete()">Yes, Delete</button>`;
-  document.querySelector('#confirmModal h3').textContent='⚠️ Confirm Delete';
-  closeModal();
-  toast('Cooler entry removed.');
-}
-
-/* Export cooler CSV */
-function exportCoolerCSV(){
-  if(!coolerStock.length){toast('No data to export.',false);return;}
-  computeCoolerClosing();
-  const rows=coolerStock.map((e,i)=>[i+1,fmtDate(e.date),e.type==='IN'?'STOCK IN':'STOCK OUT',e.brand,e.model,e.size,e.qty,e.nlc,e.closing,e.remarks||'']);
-  const hdr=['SL','Date','Type','Brand','Model','Size','Qty','NLC (Rs.)','Closing Qty','Remarks'];
-  const csv=[hdr,...rows].map(r=>r.map(c=>`"${c}"`).join(',')).join('\n');
-  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);a.download='Cooler_Stock_Ledger.csv';a.click();
-  toast('Cooler ledger exported!');
-}
-
 /* ===== TABS ===== */
 function switchTab(t){
-  document.querySelectorAll('.tab-btn[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));
+  const tabs=['dashboard','entry','ledger','report'];
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',tabs[i]===t));
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.getElementById('panel-'+t).classList.add('active');
   if(t==='dashboard')renderDashboard();
   if(t==='ledger')renderTable();
   if(t==='report')renderReport();
   if(t==='entry')updateSummary();
-  if(t==='cooler'){updateCoolerSummary();renderCoolerTable();updateCoolerFilters();}
 }
 
 /* ===== INIT ===== */
-initFirebase(); // Connects AC + Cooler Firebase listeners, falls back to localStorage
-computeClosing(); updateCompanyFilters(); renderDashboard();
-computeCoolerClosing(); updateCoolerFilters();
+initFirebase(); // Connect to Firebase (falls back to localStorage if not configured)
+computeClosing();updateCompanyFilters();renderDashboard();
+// Apply guest lock on load (login modal is shown, but lock UI just in case)
 setAdminUI(false);
 </script>
 </body>
