@@ -888,7 +888,7 @@ function initFirebase() {
     // Real-time AC data listener
     fbDb.ref(FB_PATH).on('value', snap => {
       const raw = snap.val();
-      stock = raw ? Object.values(raw) : [];
+      stock = raw ? Object.values(raw).filter(e => e && e.id) : [];
       localStorage.setItem('acStock2', JSON.stringify(stock));
       computeClosing(); updateSummary(); renderTable(); updateCompanyFilters(); renderDashboard();
     }, err => {
@@ -909,7 +909,7 @@ function initFirebase() {
     // Real-time COOLER data listener — registered alongside AC listener
     fbDb.ref(FB_COOLER_PATH).on('value', snap => {
       const raw = snap.val();
-      coolerStock = raw ? Object.values(raw) : [];
+      coolerStock = raw ? Object.values(raw).filter(e => e && e.id) : [];
       localStorage.setItem('coolerStock2', JSON.stringify(coolerStock));
       computeCoolerClosing(); renderCoolerTable(); updateCoolerSummary(); updateCoolerFilters();
     }, err => console.warn('Cooler Firebase read:', err.message));
@@ -1764,7 +1764,7 @@ function exportCSV(){
 function saveCooler(){
   localStorage.setItem('coolerStock2', JSON.stringify(coolerStock));
   if(!fbDb || !fbConnected) return;
-  const obj={};coolerStock.forEach(e=>{obj[e.id]=e;});
+  const obj={};coolerStock.forEach(e=>{ obj['c_'+e.id]=e; });
   fbDb.ref(FB_COOLER_PATH).set(obj).catch(err=>console.warn('Cooler Firebase write:', err.message));
 }
 
