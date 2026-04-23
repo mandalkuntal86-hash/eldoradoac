@@ -926,6 +926,10 @@ let editId=null, deleteId=null;
 let invType='Inverter', repType='Reporting', selectedStar=0;
 let rptMode='month';
 
+/* ===== COOLER STATE ===== */
+let coolerStock = JSON.parse(localStorage.getItem('coolerStock2')||'[]');
+let coolerEditId = null;
+
 /* ===== SAVE — writes to Firebase, falls back to localStorage ===== */
 function save() {
   // Always keep localStorage in sync as offline cache
@@ -1756,8 +1760,6 @@ function exportCSV(){
 }
 
 /* ===== COOLER STOCK ===== */
-let coolerStock = JSON.parse(localStorage.getItem('coolerStock2')||'[]');
-let coolerEditId = null;
 
 function saveCooler(){
   localStorage.setItem('coolerStock2', JSON.stringify(coolerStock));
