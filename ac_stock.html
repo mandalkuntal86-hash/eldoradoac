@@ -17,8 +17,9 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:linear-gradient(135deg,#
 .header-sub{background:rgba(0,0,0,.18);padding:5px 24px;font-size:11px;opacity:.9;display:flex;gap:20px;flex-wrap:wrap}
 
 /* TABS */
-.tabs{display:flex;background:#fff;border-bottom:2px solid #1976d2;padding:0 20px;overflow-x:auto}
-.tab-btn{padding:11px 18px;font-size:13px;font-weight:700;border:none;background:none;cursor:pointer;color:#64748b;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap;display:flex;align-items:center;gap:6px;transition:all .2s}
+.tabs{display:flex;background:#fff;border-bottom:2px solid #1976d2;padding:0 20px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab-btn{padding:11px 16px;font-size:13px;font-weight:700;border:none;background:none;cursor:pointer;color:#64748b;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap;display:flex;align-items:center;gap:6px;transition:all .2s;flex-shrink:0}
 .tab-btn.active{color:#0d47a1;border-bottom-color:#0d47a1;background:#f0f6ff}
 .tab-btn:hover:not(.active){background:#f8fafc;color:#1976d2}
 .tab-icon{font-size:15px}
@@ -226,6 +227,12 @@ tbody td.tc{text-align:center}
 .modal h3{font-size:16px;font-weight:700;margin-bottom:14px;color:#c62828}
 .modal-actions{display:flex;gap:10px;margin-top:20px;justify-content:flex-end}
 
+@media(max-width:960px) and (min-width:701px){
+  .tab-btn{padding:10px 12px;font-size:12px;gap:4px}
+  .tab-icon{font-size:14px}
+  .dash-row.three{grid-template-columns:1fr 1fr}
+  .kpi-grid{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
+}
 @media(max-width:700px){
   /* HEADER */
   .header-top{padding:8px 12px 6px;gap:6px}
@@ -239,10 +246,10 @@ tbody td.tc{text-align:center}
   .header-sub{padding:4px 12px;font-size:10px;gap:6px}
   /* FIREBASE BANNER */
   #fb-config-banner{margin:8px 10px 0;padding:10px 12px;font-size:12px}
-  /* TABS — show only icons */
-  .tabs{padding:0 2px}
-  .tab-btn{padding:10px 12px;font-size:0;gap:0}
-  .tab-btn .tab-icon{font-size:18px}
+  /* TABS — icon only on mobile, scrollable */
+  .tabs{padding:0;justify-content:space-around}
+  .tab-btn{padding:10px 0;font-size:0;gap:0;flex:1;justify-content:center;min-width:0}
+  .tab-btn .tab-icon{font-size:19px}
   /* PANELS */
   .panel{padding:12px}
   /* DASHBOARD */
@@ -367,11 +374,11 @@ tbody td.tc{text-align:center}
 
 <!-- TABS -->
 <div class="tabs">
-  <button class="tab-btn active" onclick="switchTab('dashboard')"><span class="tab-icon">&#128200;</span> Dashboard</button>
-  <button class="tab-btn" onclick="switchTab('entry')"><span class="tab-icon">&#43;</span> Stock Entry</button>
-  <button class="tab-btn" onclick="switchTab('ledger')"><span class="tab-icon">&#128196;</span> Stock Ledger</button>
-  <button class="tab-btn" onclick="switchTab('cooler')"><span class="tab-icon">&#10052;</span> Cooler Stock</button>
-  <button class="tab-btn" onclick="switchTab('report')"><span class="tab-icon">&#128202;</span> Reports</button>
+  <button class="tab-btn active" data-tab="dashboard" onclick="switchTab('dashboard')"><span class="tab-icon">&#128200;</span> Dashboard</button>
+  <button class="tab-btn" data-tab="entry" onclick="switchTab('entry')"><span class="tab-icon">&#43;</span> Stock Entry</button>
+  <button class="tab-btn" data-tab="ledger" onclick="switchTab('ledger')"><span class="tab-icon">&#128196;</span> Stock Ledger</button>
+  <button class="tab-btn" data-tab="cooler" onclick="switchTab('cooler')"><span class="tab-icon">&#10052;</span> Cooler Stock</button>
+  <button class="tab-btn" data-tab="report" onclick="switchTab('report')"><span class="tab-icon">&#128202;</span> Reports</button>
 </div>
 
 <!-- ============ DASHBOARD PANEL ============ -->
@@ -823,6 +830,7 @@ const FIREBASE_CONFIG = {
   appId:             "1:1000020486321:web:99d1731c9060e84d2b9a90"
 };
 const FB_PATH = 'acStock2'; // Realtime DB path — change if needed
+const FB_COOLER_PATH = 'coolerStock2';
 
 /* ===== FIREBASE INIT ===== */
 let fbDb = null;
@@ -877,14 +885,12 @@ function initFirebase() {
       }
     });
 
-    // Real-time data listener
+    // Real-time AC data listener
     fbDb.ref(FB_PATH).on('value', snap => {
       const raw = snap.val();
       stock = raw ? Object.values(raw) : [];
       localStorage.setItem('acStock2', JSON.stringify(stock));
       computeClosing(); updateSummary(); renderTable(); updateCompanyFilters(); renderDashboard();
-      // Also init cooler listener once fbDb is confirmed ready
-      initCoolerFirebase();
     }, err => {
       console.error('Firebase read error:', err.code, err.message);
       clearTimeout(connTimeout);
@@ -899,6 +905,14 @@ function initFirebase() {
         toast('Firebase error: ' + err.message, false);
       }
     });
+
+    // Real-time COOLER data listener — registered alongside AC listener
+    fbDb.ref(FB_COOLER_PATH).on('value', snap => {
+      const raw = snap.val();
+      coolerStock = raw ? Object.values(raw) : [];
+      localStorage.setItem('coolerStock2', JSON.stringify(coolerStock));
+      computeCoolerClosing(); renderCoolerTable(); updateCoolerSummary(); updateCoolerFilters();
+    }, err => console.warn('Cooler Firebase read:', err.message));
 
   } catch (e) {
     console.error('Firebase init error:', e);
@@ -1744,25 +1758,12 @@ function exportCSV(){
 /* ===== COOLER STOCK ===== */
 let coolerStock = JSON.parse(localStorage.getItem('coolerStock2')||'[]');
 let coolerEditId = null;
-const FB_COOLER_PATH = 'coolerStock2';
 
 function saveCooler(){
   localStorage.setItem('coolerStock2', JSON.stringify(coolerStock));
   if(!fbDb || !fbConnected) return;
   const obj={};coolerStock.forEach(e=>{obj[e.id]=e;});
   fbDb.ref(FB_COOLER_PATH).set(obj).catch(err=>console.warn('Cooler Firebase write:', err.message));
-}
-
-let coolerFbInitDone = false;
-function initCoolerFirebase(){
-  if(!fbDb || coolerFbInitDone) return;
-  coolerFbInitDone = true;
-  fbDb.ref(FB_COOLER_PATH).on('value', snap=>{
-    const raw=snap.val();
-    coolerStock=raw?Object.values(raw):[];
-    localStorage.setItem('coolerStock2',JSON.stringify(coolerStock));
-    computeCoolerClosing();renderCoolerTable();updateCoolerSummary();updateCoolerFilters();
-  }, err=>console.warn('Cooler Firebase read:', err.message));
 }
 
 function computeCoolerClosing(){
@@ -2030,8 +2031,7 @@ function exportCoolerCSV(){
 
 /* ===== TABS ===== */
 function switchTab(t){
-  const tabs=['dashboard','entry','ledger','cooler','report'];
-  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',tabs[i]===t));
+  document.querySelectorAll('.tab-btn[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.getElementById('panel-'+t).classList.add('active');
   if(t==='dashboard')renderDashboard();
@@ -2042,12 +2042,10 @@ function switchTab(t){
 }
 
 /* ===== INIT ===== */
-initFirebase(); // Connect to Firebase (falls back to localStorage if not configured)
-computeClosing();updateCompanyFilters();renderDashboard();
-// Apply guest lock on load (login modal is shown, but lock UI just in case)
+initFirebase(); // Connects AC + Cooler Firebase listeners, falls back to localStorage
+computeClosing(); updateCompanyFilters(); renderDashboard();
+computeCoolerClosing(); updateCoolerFilters();
 setAdminUI(false);
-// Cooler init: runs from localStorage immediately; Firebase listener attaches once AC Firebase is ready
-computeCoolerClosing();updateCoolerFilters();
 </script>
 </body>
 </html>
