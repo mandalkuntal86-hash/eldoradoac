@@ -883,6 +883,8 @@ function initFirebase() {
       stock = raw ? Object.values(raw) : [];
       localStorage.setItem('acStock2', JSON.stringify(stock));
       computeClosing(); updateSummary(); renderTable(); updateCompanyFilters(); renderDashboard();
+      // Also init cooler listener once fbDb is confirmed ready
+      initCoolerFirebase();
     }, err => {
       console.error('Firebase read error:', err.code, err.message);
       clearTimeout(connTimeout);
@@ -1748,17 +1750,19 @@ function saveCooler(){
   localStorage.setItem('coolerStock2', JSON.stringify(coolerStock));
   if(!fbDb || !fbConnected) return;
   const obj={};coolerStock.forEach(e=>{obj[e.id]=e;});
-  fbDb.ref(FB_COOLER_PATH).set(obj).catch(err=>toast('⚠ Cooler sync error',false));
+  fbDb.ref(FB_COOLER_PATH).set(obj).catch(err=>console.warn('Cooler Firebase write:', err.message));
 }
 
+let coolerFbInitDone = false;
 function initCoolerFirebase(){
-  if(!fbDb) return;
+  if(!fbDb || coolerFbInitDone) return;
+  coolerFbInitDone = true;
   fbDb.ref(FB_COOLER_PATH).on('value', snap=>{
     const raw=snap.val();
     coolerStock=raw?Object.values(raw):[];
     localStorage.setItem('coolerStock2',JSON.stringify(coolerStock));
-    renderCoolerTable();updateCoolerSummary();updateCoolerFilters();
-  },()=>{});
+    computeCoolerClosing();renderCoolerTable();updateCoolerSummary();updateCoolerFilters();
+  }, err=>console.warn('Cooler Firebase read:', err.message));
 }
 
 function computeCoolerClosing(){
@@ -2042,8 +2046,8 @@ initFirebase(); // Connect to Firebase (falls back to localStorage if not config
 computeClosing();updateCompanyFilters();renderDashboard();
 // Apply guest lock on load (login modal is shown, but lock UI just in case)
 setAdminUI(false);
-// Init cooler after Firebase is set up (slight delay to let fbDb be assigned)
-setTimeout(()=>{initCoolerFirebase();computeCoolerClosing();updateCoolerFilters();},300);
+// Cooler init: runs from localStorage immediately; Firebase listener attaches once AC Firebase is ready
+computeCoolerClosing();updateCoolerFilters();
 </script>
 </body>
 </html>
