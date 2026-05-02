@@ -1427,11 +1427,9 @@ function renderDashboard(){
   document.getElementById('kpiCards').innerHTML=`
     <div class="kpi"><div class="kpi-icon">📥</div><div class="kpi-label">Total Stock In</div><div class="kpi-val">${tIn}</div><div class="kpi-sub">All time units received</div></div>
     <div class="kpi orange"><div class="kpi-icon">📤</div><div class="kpi-label">Total Stock Out</div><div class="kpi-val">${tOut}</div><div class="kpi-sub">All time units dispatched</div></div>
-    <div class="kpi green"><div class="kpi-icon">📦</div><div class="kpi-label">Closing Stock</div><div class="kpi-val">${closing}</div><div class="kpi-sub">Current balance</div></div>
-    <div class="kpi teal"><div class="kpi-icon">⚡</div><div class="kpi-label">Inverter Units</div><div class="kpi-val">${invIn}</div><div class="kpi-sub">Stock IN entries</div></div>
     <div class="kpi purple"><div class="kpi-icon">🏷️</div><div class="kpi-label">Brands</div><div class="kpi-val">${brands}</div><div class="kpi-sub">Companies tracked</div></div>
-    <div class="kpi gold"><div class="kpi-icon">📅</div><div class="kpi-label">This Month IN</div><div class="kpi-val">${mthIn}</div><div class="kpi-sub">OUT: ${mthOut} units</div></div>
-    <div class="kpi red"><div class="kpi-icon">📋</div><div class="kpi-label">Total Entries</div><div class="kpi-val">${stock.length}</div><div class="kpi-sub">All records</div></div>
+    <div class="kpi gold"><div class="kpi-icon">📅</div><div class="kpi-label">This Month OUT</div><div class="kpi-val">${mthOut}</div><div class="kpi-sub">IN: ${mthIn} units</div></div>
+    <div class="kpi green"><div class="kpi-icon">📦</div><div class="kpi-label">Closing Stock</div><div class="kpi-val">${closing}</div><div class="kpi-sub">Current balance</div></div>
   `;
 
   // Year selector
@@ -1442,11 +1440,14 @@ function renderDashboard(){
 
   // MONTH CHART
   const months=Array.from({length:12},(_,i)=>i+1);
+  const openingStock=stock.filter(e=>fy(e.date)<selYear).reduce((s,e)=>s+(e.type==='IN'?e.qty:-e.qty),0);
   const mdata=months.map(m=>({
     m,lbl:monthName(m),
     in:stock.filter(e=>e.type==='IN'&&fy(e.date)===selYear&&fm(e.date)===m).reduce((s,e)=>s+e.qty,0),
     out:stock.filter(e=>e.type==='OUT'&&fy(e.date)===selYear&&fm(e.date)===m).reduce((s,e)=>s+e.qty,0)
   }));
+  let runningStock=openingStock;
+  mdata.forEach(d=>{runningStock+=d.in-d.out;d.closingStock=runningStock;});
   const maxM=Math.max(...mdata.map(d=>Math.max(d.in,d.out)),1);
   document.getElementById('monthChart').innerHTML=`<div class="bar-chart">${mdata.map(d=>`
     <div class="bar-row">
@@ -1455,7 +1456,7 @@ function renderDashboard(){
         <div class="bar-track"><div class="bar-fill in" style="width:${(d.in/maxM*100).toFixed(1)}%">${d.in>0?d.in:''}</div></div>
         <div class="bar-track" style="height:14px"><div class="bar-fill out" style="width:${(d.out/maxM*100).toFixed(1)}%">${d.out>0?d.out:''}</div></div>
       </div>
-      <div style="font-size:10px;font-weight:700;color:${(d.in-d.out)>0?'#166534':(d.in-d.out)<0?'#c62828':'#94a3b8'};width:32px;text-align:right" title="Closing Stock">${(d.in||d.out)?(d.in-d.out):''}</div>
+      <div style="font-size:11px;font-weight:800;color:${d.closingStock>0?'#166534':d.closingStock<0?'#c62828':'#94a3b8'};width:40px;text-align:right" title="Closing Stock">${(d.in||d.out)?d.closingStock:''}</div>
     </div>`).join('')}
     <div style="display:flex;gap:12px;margin-top:6px;font-size:11px;align-items:center">
       <span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:8px;border-radius:2px;background:#1976d2;display:inline-block"></span>IN</span>
