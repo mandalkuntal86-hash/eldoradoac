@@ -74,7 +74,20 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:linear-gradient(135deg,#
 .legend-item{display:flex;align-items:center;gap:8px;font-size:12px}
 .legend-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
 
-/* MONTH HEATMAP */
+/* MONTH-BRAND MATRIX */
+.mb-table{width:100%;border-collapse:collapse;font-size:12px;min-width:700px}
+.mb-table th{background:#0d47a1;color:#fff;padding:8px 10px;text-align:center;font-size:11px;font-weight:700;white-space:nowrap;position:sticky;top:0;z-index:2}
+.mb-table th.brand-col{text-align:left;min-width:90px;position:sticky;left:0;z-index:3;background:#0d47a1}
+.mb-table td{padding:7px 10px;border-bottom:1px solid #f1f5f9;text-align:center;font-size:12px}
+.mb-table td.brand-name{text-align:left;font-weight:700;color:#1a2332;background:#f8faff;position:sticky;left:0;z-index:1;border-right:2px solid #dbeafe}
+.mb-table td.total-col{font-weight:800;background:#eff6ff;color:#1e40af}
+.mb-table tr:hover td{background:#f0f6ff}
+.mb-table tr:hover td.brand-name{background:#e8f0fe}
+.mb-table .total-row td{background:#e8f0fe!important;font-weight:800;color:#0d47a1;border-top:2px solid #bfdbfe}
+.mb-cell-val{font-weight:700}
+.mb-zero{color:#cbd5e1}
+
+
 .month-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
 .month-cell{border-radius:10px;padding:10px 6px;text-align:center;font-size:11px;cursor:default}
 .month-cell .mcl{font-weight:700;font-size:13px;display:block}
@@ -404,6 +417,24 @@ tbody td.tc{text-align:center}
     <div class="dash-card">
       <div class="dash-card-hdr"><h3>&#128200; Reporting Split</h3></div>
       <div class="dash-card-body"><div class="donut-wrap" id="repDonut"></div></div>
+    </div>
+  </div>
+
+  <!-- MONTH × BRAND MATRIX -->
+  <div class="dash-row full">
+    <div class="dash-card">
+      <div class="dash-card-hdr">
+        <h3>&#128202; Month-wise Brand-wise Stock Report</h3>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <select id="mbyr" onchange="renderMonthBrand()" style="padding:4px 8px;border:1.5px solid #cbd5e1;border-radius:6px;font-size:12px"></select>
+          <select id="mbView" onchange="renderMonthBrand()" style="padding:4px 8px;border:1.5px solid #cbd5e1;border-radius:6px;font-size:12px">
+            <option value="in">Stock IN</option>
+            <option value="out">Stock OUT</option>
+            <option value="closing">Closing</option>
+          </select>
+        </div>
+      </div>
+      <div class="dash-card-body" style="padding:0;overflow-x:auto" id="monthBrandMatrix"></div>
     </div>
   </div>
 
@@ -1473,12 +1504,120 @@ function renderDashboard(){
     <tbody>${topArr.map(([n,v],i)=>`<tr><td style="color:#94a3b8">${i+1}</td><td><b>${n}</b></td><td style="text-align:center;color:#166534;font-weight:700">${v.in}</td><td style="text-align:center;color:#9a3412;font-weight:700">${v.out}</td><td style="text-align:center;font-weight:800">${v.in-v.out}</td></tr>`).join('')}</tbody>
   </table></div>`:'<div class="empty-state" style="padding:24px"><div class="ei">&#127970;</div>No data.</div>';
 
+  // MONTH-BRAND YEAR SELECTOR (sync with dash-year)
+  const mbyr=document.getElementById('mbyr');
+  if(!mbyr.value||mbyr.innerHTML===''){mbyr.innerHTML='';years.forEach(y=>{const o=document.createElement('option');o.value=y;o.textContent=y;mbyr.appendChild(o);});mbyr.value=selYear;}
+  renderMonthBrand();
+
   // RECENT 8
   const recent=[...stock].sort((a,b)=>b.id-a.id).slice(0,8);
   document.getElementById('recentTable').innerHTML=recent.length?`<div style="overflow-x:auto"><table class="mini-table">
     <thead><tr><th>Date</th><th>Brand</th><th>Model</th><th style="text-align:center">Type</th><th style="text-align:center">Qty</th></tr></thead>
     <tbody>${recent.map(e=>`<tr><td>${fmtDate(e.date)}</td><td>${e.company}</td><td style="font-family:monospace;font-size:11px">${e.model}</td><td style="text-align:center"><span class="badge ${e.type==='IN'?'badge-in':'badge-out'}" style="font-size:10px">${e.type}</span></td><td style="text-align:center;font-weight:700">${e.qty}</td></tr>`).join('')}</tbody>
   </table></div>`:'<div class="empty-state" style="padding:24px"><div class="ei">&#128337;</div>No entries yet.</div>';
+}
+
+/* ===== MONTH × BRAND MATRIX ===== */
+function renderMonthBrand(){
+  const selYear=document.getElementById('mbyr')?.value||(new Date().getFullYear().toString());
+  const view=document.getElementById('mbView')?.value||'in';
+  const out=document.getElementById('monthBrandMatrix');
+  if(!out)return;
+
+  const months=Array.from({length:12},(_,i)=>i+1);
+  // Brands that have activity in this year
+  const yearStock=stock.filter(e=>fy(e.date)===selYear);
+  const brands=[...new Set(yearStock.map(e=>e.company))].sort();
+
+  if(!brands.length){out.innerHTML='<div class="empty-state" style="padding:32px"><div class="ei">📊</div>No data for this year.</div>';return;}
+
+  // Build matrix: brand → month → {in,out}
+  const matrix={};
+  brands.forEach(b=>{matrix[b]={};months.forEach(m=>{matrix[b][m]={in:0,out:0};});});
+  yearStock.forEach(e=>{
+    const m=fm(e.date);
+    if(matrix[e.company]&&matrix[e.company][m]){
+      if(e.type==='IN') matrix[e.company][m].in+=e.qty;
+      else matrix[e.company][m].out+=e.qty;
+    }
+  });
+
+  // Column totals (per month)
+  const mTotals={};
+  months.forEach(m=>{mTotals[m]={in:0,out:0};brands.forEach(b=>{mTotals[m].in+=matrix[b][m].in;mTotals[m].out+=matrix[b][m].out;});});
+
+  // Compute running closings for each brand × month (needs all-time data before year start)
+  // Opening per brand before selYear
+  const brandOpening={};
+  brands.forEach(b=>{
+    brandOpening[b]=stock.filter(e=>e.company===b&&fy(e.date)<selYear).reduce((s,e)=>s+(e.type==='IN'?e.qty:-e.qty),0);
+  });
+
+  function getCellVal(b,m){
+    if(view==='in') return matrix[b][m].in;
+    if(view==='out') return matrix[b][m].out;
+    // closing = opening + all IN - all OUT up to this month
+    let running=brandOpening[b];
+    for(let i=1;i<=m;i++) running+=matrix[b][i].in-matrix[b][i].out;
+    return running;
+  }
+
+  function getMonthTotal(m){
+    if(view==='in') return mTotals[m].in;
+    if(view==='out') return mTotals[m].out;
+    // Sum of closings per brand
+    return brands.reduce((s,b)=>s+getCellVal(b,m),0);
+  }
+
+  // Max value for heat coloring
+  const allVals=brands.flatMap(b=>months.map(m=>Math.abs(getCellVal(b,m)))).filter(v=>v>0);
+  const maxVal=allVals.length?Math.max(...allVals):1;
+
+  // Brand row total
+  function getBrandTotal(b){
+    if(view==='in') return months.reduce((s,m)=>s+matrix[b][m].in,0);
+    if(view==='out') return months.reduce((s,m)=>s+matrix[b][m].out,0);
+    return getCellVal(b,12); // closing = final month closing
+  }
+
+  const colorIn=(v,max)=>{if(!v)return'';const p=Math.min(v/max,1);return`rgba(21,101,192,${(0.12+p*0.55).toFixed(2)})`;};
+  const colorOut=(v,max)=>{if(!v)return'';const p=Math.min(v/max,1);return`rgba(198,40,40,${(0.12+p*0.55).toFixed(2)})`;};
+  const colorClose=(v,max)=>{if(v===0)return'';if(v<0)return`rgba(198,40,40,${Math.min(0.15+Math.abs(v)/max*0.5,0.7).toFixed(2)})`;const p=Math.min(v/max,1);return`rgba(46,125,50,${(0.1+p*0.45).toFixed(2)})`;};
+  const colorFn=view==='in'?colorIn:view==='out'?colorOut:colorClose;
+  const textColor=(v)=>view==='closing'&&v<0?'#c62828':view==='closing'&&v>0?'#166534':view==='in'?'#0d47a1':view==='out'?'#9a3412':'#1a2332';
+
+  const activeMonths=months.filter(m=>months.some(()=>yearStock.some(e=>fm(e.date)===m)));
+
+  const headerRow=`<tr>
+    <th class="brand-col">Brand</th>
+    ${months.map(m=>`<th>${monthName(m)}</th>`).join('')}
+    <th>Total</th>
+  </tr>`;
+
+  const dataRows=brands.map(b=>{
+    const rowCells=months.map(m=>{
+      const v=getCellVal(b,m);
+      const bg=colorFn(v,maxVal);
+      return`<td style="${bg?`background:${bg};`:''}">${v===0?`<span class="mb-zero">—</span>`:`<span class="mb-cell-val" style="color:${textColor(v)}">${v}</span>`}</td>`;
+    }).join('');
+    const bt=getBrandTotal(b);
+    return`<tr>
+      <td class="brand-name">${b}</td>
+      ${rowCells}
+      <td class="total-col" style="color:${textColor(bt)}">${bt}</td>
+    </tr>`;
+  }).join('');
+
+  const totalRow=`<tr class="total-row">
+    <td class="brand-name" style="background:#e8f0fe!important">TOTAL</td>
+    ${months.map(m=>{const v=getMonthTotal(m);return`<td style="color:${textColor(v)};font-weight:800">${v||'—'}</td>`;}).join('')}
+    <td class="total-col">${brands.reduce((s,b)=>s+getBrandTotal(b),0)}</td>
+  </tr>`;
+
+  out.innerHTML=`<table class="mb-table">
+    <thead>${headerRow}</thead>
+    <tbody>${dataRows}${totalRow}</tbody>
+  </table>`;
 }
 
 /* ===== REPORTS ===== */
@@ -1514,6 +1653,26 @@ function renderReport(){
 }
 
 function renderMonthReport(data,out){
+  // Compute opening: all stock entries BEFORE the filtered date range (same brand filter applies)
+  const rcomp=document.getElementById('r-company').value;
+  const rinv=document.getElementById('r-inv').value;
+  const rstar=document.getElementById('r-star').value;
+  const from=document.getElementById('r-from').value;
+
+  // All stock (unfiltered by date) but filtered by brand/inv/star
+  let allFiltered=[...stock];
+  if(rcomp)allFiltered=allFiltered.filter(e=>e.company===rcomp);
+  if(rinv)allFiltered=allFiltered.filter(e=>e.invType===rinv);
+  if(rstar)allFiltered=allFiltered.filter(e=>e.star===parseInt(rstar));
+
+  // Opening = net stock before the 'from' date
+  let openingStock=0;
+  if(from){
+    allFiltered.forEach(e=>{
+      if(e.date<from) openingStock+=(e.type==='IN'?e.qty:-e.qty);
+    });
+  }
+
   // Group by YYYY-MM
   const groups={};
   data.forEach(e=>{
@@ -1527,26 +1686,57 @@ function renderMonthReport(data,out){
   const totIn=data.filter(e=>e.type==='IN').reduce((s,e)=>s+e.qty,0);
   const totOut=data.filter(e=>e.type==='OUT').reduce((s,e)=>s+e.qty,0);
   const avgNlc=data.filter(e=>e.type==='IN').length?data.filter(e=>e.type==='IN').reduce((s,e)=>s+e.nlc,0)/data.filter(e=>e.type==='IN').length:0;
+
+  // Build rows with running closing
+  let running=openingStock;
+  const rows=keys.map(k=>{
+    const g=groups[k];
+    const opening=running;
+    running+=g.in-g.out;
+    const closing=running;
+    const avg=g.nlcs.length?(g.nlcs.reduce((a,b)=>a+b,0)/g.nlcs.length):0;
+    return`<tr>
+      <td><b>${g.label}</b></td>
+      <td style="color:#6d28d9;font-weight:700">${opening}</td>
+      <td style="color:#166534;font-weight:700">${g.in}</td>
+      <td style="color:#9a3412;font-weight:700">${g.out}</td>
+      <td style="font-weight:700;color:${closing<0?'#c62828':'#1a2332'}">${closing}</td>
+      <td class="nlc-val">${avg?'&#8377;'+avg.toLocaleString('en-IN',{minimumFractionDigits:2}):'—'}</td>
+      <td style="color:#64748b">${g.entries}</td>
+    </tr>`;
+  }).join('');
+
   out.innerHTML=`<div class="rpt-section">
-    <div class="rpt-section-hdr">&#128197; Month-wise Stock Report</div>
+    <div class="rpt-section-hdr">&#128197; Month-wise Stock Report${rcomp?' — '+rcomp:''}</div>
     <table class="rpt-table">
-      <thead><tr><th>Month</th><th>Stock IN</th><th>Stock OUT (Sale)</th><th>Closing</th><th>Avg NLC (&#8377;)</th><th>Entries</th></tr></thead>
+      <thead><tr><th>Month</th><th style="color:#c4b5fd">Opening</th><th>Stock IN</th><th>Stock OUT (Sale)</th><th>Closing</th><th>Avg NLC (&#8377;)</th><th>Entries</th></tr></thead>
       <tbody>
-        ${keys.map(k=>{const g=groups[k];const avg=g.nlcs.length?(g.nlcs.reduce((a,b)=>a+b,0)/g.nlcs.length):0;return`<tr>
-          <td><b>${g.label}</b></td>
-          <td style="color:#166534;font-weight:700">${g.in}</td>
-          <td style="color:#9a3412;font-weight:700">${g.out}</td>
-          <td><b>${g.in-g.out}</b></td>
-          <td class="nlc-val">${avg?'&#8377;'+avg.toLocaleString('en-IN',{minimumFractionDigits:2}):'—'}</td>
-          <td style="color:#64748b">${g.entries}</td>
-        </tr>`;}).join('')}
-        <tr class="rpt-total"><td>TOTAL</td><td style="color:#166534">${totIn}</td><td style="color:#9a3412">${totOut}</td><td><b>${totIn-totOut}</b></td><td class="nlc-val">${avgNlc?'&#8377;'+avgNlc.toLocaleString('en-IN',{minimumFractionDigits:2}):'—'}</td><td>${data.length}</td></tr>
+        ${rows}
+        <tr class="rpt-total"><td>TOTAL</td><td style="color:#6d28d9">${openingStock}</td><td style="color:#166534">${totIn}</td><td style="color:#9a3412">${totOut}</td><td><b>${openingStock+totIn-totOut}</b></td><td class="nlc-val">${avgNlc?'&#8377;'+avgNlc.toLocaleString('en-IN',{minimumFractionDigits:2}):'—'}</td><td>${data.length}</td></tr>
       </tbody>
     </table>
   </div>`;
 }
 
 function renderDateReport(data,out){
+  // Compute opening stock before the filter's from-date (same brand/inv/star filter)
+  const rcomp=document.getElementById('r-company').value;
+  const rinv=document.getElementById('r-inv').value;
+  const rstar=document.getElementById('r-star').value;
+  const from=document.getElementById('r-from').value;
+
+  let allFiltered=[...stock];
+  if(rcomp)allFiltered=allFiltered.filter(e=>e.company===rcomp);
+  if(rinv)allFiltered=allFiltered.filter(e=>e.invType===rinv);
+  if(rstar)allFiltered=allFiltered.filter(e=>e.star===parseInt(rstar));
+
+  let openingStock=0;
+  if(from){
+    allFiltered.forEach(e=>{
+      if(e.date<from) openingStock+=(e.type==='IN'?e.qty:-e.qty);
+    });
+  }
+
   const groups={};
   data.forEach(e=>{
     if(!groups[e.date])groups[e.date]={in:0,out:0,nlcs:[],entries:0};
@@ -1557,26 +1747,55 @@ function renderDateReport(data,out){
   const keys=Object.keys(groups).sort();
   const totIn=data.filter(e=>e.type==='IN').reduce((s,e)=>s+e.qty,0);
   const totOut=data.filter(e=>e.type==='OUT').reduce((s,e)=>s+e.qty,0);
+
+  let running=openingStock;
+  const rows=keys.map(k=>{
+    const g=groups[k];
+    const opening=running;
+    running+=g.in-g.out;
+    const closing=running;
+    const avg=g.nlcs.length?(g.nlcs.reduce((a,b)=>a+b,0)/g.nlcs.length):0;
+    return`<tr>
+      <td><b>${fmtDate(k)}</b></td>
+      <td style="color:#6d28d9;font-weight:700">${opening}</td>
+      <td style="color:#166534;font-weight:700">${g.in}</td>
+      <td style="color:#9a3412;font-weight:700">${g.out}</td>
+      <td style="font-weight:700;color:${closing<0?'#c62828':'#1a2332'}">${closing}</td>
+      <td class="nlc-val">${avg?'&#8377;'+avg.toLocaleString('en-IN',{minimumFractionDigits:2}):'—'}</td>
+      <td style="color:#64748b">${g.entries}</td>
+    </tr>`;
+  }).join('');
+
   out.innerHTML=`<div class="rpt-section">
-    <div class="rpt-section-hdr">&#128197; Date-wise Stock Report</div>
+    <div class="rpt-section-hdr">&#128197; Date-wise Stock Report${rcomp?' — '+rcomp:''}</div>
     <table class="rpt-table">
-      <thead><tr><th>Date</th><th>Stock IN</th><th>Stock OUT (Sale)</th><th>Closing</th><th>Avg NLC (&#8377;)</th><th>Entries</th></tr></thead>
+      <thead><tr><th>Date</th><th style="color:#c4b5fd">Opening</th><th>Stock IN</th><th>Stock OUT (Sale)</th><th>Closing</th><th>Avg NLC (&#8377;)</th><th>Entries</th></tr></thead>
       <tbody>
-        ${keys.map(k=>{const g=groups[k];const avg=g.nlcs.length?(g.nlcs.reduce((a,b)=>a+b,0)/g.nlcs.length):0;return`<tr>
-          <td><b>${fmtDate(k)}</b></td>
-          <td style="color:#166534;font-weight:700">${g.in}</td>
-          <td style="color:#9a3412;font-weight:700">${g.out}</td>
-          <td><b>${g.in-g.out}</b></td>
-          <td class="nlc-val">${avg?'&#8377;'+avg.toLocaleString('en-IN',{minimumFractionDigits:2}):'—'}</td>
-          <td style="color:#64748b">${g.entries}</td>
-        </tr>`;}).join('')}
-        <tr class="rpt-total"><td>TOTAL</td><td style="color:#166534">${totIn}</td><td style="color:#9a3412">${totOut}</td><td><b>${totIn-totOut}</b></td><td>—</td><td>${data.length}</td></tr>
+        ${rows}
+        <tr class="rpt-total"><td>TOTAL</td><td style="color:#6d28d9">${openingStock}</td><td style="color:#166534">${totIn}</td><td style="color:#9a3412">${totOut}</td><td><b>${openingStock+totIn-totOut}</b></td><td>—</td><td>${data.length}</td></tr>
       </tbody>
     </table>
   </div>`;
 }
 
 function renderBrandReport(data,out){
+  const rcomp=document.getElementById('r-company').value;
+  const rinv=document.getElementById('r-inv').value;
+  const rstar=document.getElementById('r-star').value;
+  const from=document.getElementById('r-from').value;
+
+  // For each brand, compute opening (stock before from-date)
+  const brandOpenings={};
+  let allFiltered=[...stock];
+  if(rinv)allFiltered=allFiltered.filter(e=>e.invType===rinv);
+  if(rstar)allFiltered=allFiltered.filter(e=>e.star===parseInt(rstar));
+  if(from){
+    allFiltered.filter(e=>e.date<from).forEach(e=>{
+      if(!brandOpenings[e.company])brandOpenings[e.company]=0;
+      brandOpenings[e.company]+=(e.type==='IN'?e.qty:-e.qty);
+    });
+  }
+
   const groups={};
   data.forEach(e=>{
     if(!groups[e.company])groups[e.company]={in:0,out:0,nlcs:[],models:new Set(),entries:0};
@@ -1588,22 +1807,29 @@ function renderBrandReport(data,out){
   const sorted=Object.entries(groups).sort((a,b)=>b[1].in-a[1].in);
   const totIn=data.filter(e=>e.type==='IN').reduce((s,e)=>s+e.qty,0);
   const totOut=data.filter(e=>e.type==='OUT').reduce((s,e)=>s+e.qty,0);
+  const totOpening=sorted.reduce((s,[name])=>s+(brandOpenings[name]||0),0);
+
   out.innerHTML=`<div class="rpt-section">
     <div class="rpt-section-hdr">&#127970; Brand-wise Stock Report</div>
     <table class="rpt-table">
-      <thead><tr><th>#</th><th>Brand</th><th>Stock IN</th><th>Stock OUT (Sale)</th><th>Closing</th><th>Avg NLC (&#8377;)</th><th>Models</th><th>Entries</th></tr></thead>
+      <thead><tr><th>#</th><th>Brand</th><th style="color:#c4b5fd">Opening</th><th>Stock IN</th><th>Stock OUT (Sale)</th><th>Closing</th><th>Avg NLC (&#8377;)</th><th>Models</th><th>Entries</th></tr></thead>
       <tbody>
-        ${sorted.map(([name,g],i)=>{const avg=g.nlcs.length?(g.nlcs.reduce((a,b)=>a+b,0)/g.nlcs.length):0;return`<tr>
-          <td style="color:#94a3b8">${i+1}</td>
-          <td><b>${name}</b></td>
-          <td style="color:#166534;font-weight:700">${g.in}</td>
-          <td style="color:#9a3412;font-weight:700">${g.out}</td>
-          <td><b>${g.in-g.out}</b></td>
-          <td class="nlc-val">${avg?'&#8377;'+avg.toLocaleString('en-IN',{minimumFractionDigits:2}):'—'}</td>
-          <td style="color:#64748b">${g.models.size}</td>
-          <td style="color:#64748b">${g.entries}</td>
-        </tr>`;}).join('')}
-        <tr class="rpt-total"><td colspan="2">TOTAL</td><td style="color:#166534">${totIn}</td><td style="color:#9a3412">${totOut}</td><td><b>${totIn-totOut}</b></td><td>—</td><td>${[...new Set(data.map(e=>e.model))].length}</td><td>${data.length}</td></tr>
+        ${sorted.map(([name,g],i)=>{
+          const avg=g.nlcs.length?(g.nlcs.reduce((a,b)=>a+b,0)/g.nlcs.length):0;
+          const opening=brandOpenings[name]||0;
+          const closing=opening+g.in-g.out;
+          return`<tr>
+            <td style="color:#94a3b8">${i+1}</td>
+            <td><b>${name}</b></td>
+            <td style="color:#6d28d9;font-weight:700">${opening}</td>
+            <td style="color:#166534;font-weight:700">${g.in}</td>
+            <td style="color:#9a3412;font-weight:700">${g.out}</td>
+            <td style="font-weight:700;color:${closing<0?'#c62828':'#1a2332'}">${closing}</td>
+            <td class="nlc-val">${avg?'&#8377;'+avg.toLocaleString('en-IN',{minimumFractionDigits:2}):'—'}</td>
+            <td style="color:#64748b">${g.models.size}</td>
+            <td style="color:#64748b">${g.entries}</td>
+          </tr>`;}).join('')}
+        <tr class="rpt-total"><td colspan="2">TOTAL</td><td style="color:#6d28d9">${totOpening}</td><td style="color:#166534">${totIn}</td><td style="color:#9a3412">${totOut}</td><td><b>${totOpening+totIn-totOut}</b></td><td>—</td><td>${[...new Set(data.map(e=>e.model))].length}</td><td>${data.length}</td></tr>
       </tbody>
     </table>
   </div>`;
