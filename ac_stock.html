@@ -405,17 +405,17 @@ tbody td.tc{text-align:center}
   <div class="dash-row three">
     <!-- Inverter donut -->
     <div class="dash-card">
-      <div class="dash-card-hdr"><h3>&#9889; Inverter Split</h3></div>
+      <div class="dash-card-hdr"><h3>&#9889; Inverter Split <span style="font-size:10px;font-weight:500;color:#94a3b8;margin-left:4px">(Current Stock)</span></h3></div>
       <div class="dash-card-body"><div class="donut-wrap" id="invDonut"></div></div>
     </div>
     <!-- Star rating donut -->
     <div class="dash-card">
-      <div class="dash-card-hdr"><h3>&#9733; Star Rating Split</h3></div>
+      <div class="dash-card-hdr"><h3>&#9733; Star Rating Split <span style="font-size:10px;font-weight:500;color:#94a3b8;margin-left:4px">(Current Stock)</span></h3></div>
       <div class="dash-card-body"><div class="donut-wrap" id="starDonut"></div></div>
     </div>
     <!-- Reporting donut -->
     <div class="dash-card">
-      <div class="dash-card-hdr"><h3>&#128200; Reporting Split</h3></div>
+      <div class="dash-card-hdr"><h3>&#128200; Reporting Split <span style="font-size:10px;font-weight:500;color:#94a3b8;margin-left:4px">(Current Stock)</span></h3></div>
       <div class="dash-card-body"><div class="donut-wrap" id="repDonut"></div></div>
     </div>
   </div>
@@ -1489,13 +1489,25 @@ function renderDashboard(){
     const legend=`<div class="donut-legend">${data.map(d=>`<div class="legend-item"><div class="legend-dot" style="background:${d.c}"></div><span>${d.lbl}: <b>${d.v}</b> <span style="color:#94a3b8;font-size:11px">(${total?(d.v/total*100).toFixed(0):0}%)</span></span></div>`).join('')}</div>`;
     return svg+legend;
   }
-  const invUnits=stock.filter(e=>e.type==='IN'&&e.invType==='Inverter').reduce((s,e)=>s+e.qty,0);
-  const ninvUnits=stock.filter(e=>e.type==='IN'&&e.invType==='Non-Inverter').reduce((s,e)=>s+e.qty,0);
+  // Compute closing stock per product group, then split by category
+  const closingByGroup={};
+  stock.forEach(e=>{
+    const k=e.company+'||'+e.model+'||'+e.capacity;
+    if(!closingByGroup[k])closingByGroup[k]={invType:e.invType,repType:e.repType,star:e.star,closing:0};
+    closingByGroup[k].closing+=(e.type==='IN'?e.qty:-e.qty);
+    // keep latest entry attributes
+    closingByGroup[k].invType=e.invType;
+    closingByGroup[k].repType=e.repType;
+    closingByGroup[k].star=e.star;
+  });
+  const groups=Object.values(closingByGroup).filter(g=>g.closing>0);
+  const invUnits=groups.filter(g=>g.invType==='Inverter').reduce((s,g)=>s+g.closing,0);
+  const ninvUnits=groups.filter(g=>g.invType==='Non-Inverter').reduce((s,g)=>s+g.closing,0);
   document.getElementById('invDonut').innerHTML=donut([{lbl:'Inverter',v:invUnits,c:'#1976d2'},{lbl:'Non-Inv',v:ninvUnits,c:'#e91e8c'}],['#1976d2','#e91e8c']);
-  const starData=[5,4,3,2,1].map(s=>({lbl:`${s}★`,v:stock.filter(e=>e.type==='IN'&&e.star===s).reduce((a,e)=>a+e.qty,0),c:['#f59e0b','#22c55e','#3b82f6','#a855f7','#ef4444'][5-s]}));
+  const starData=[5,4,3,2,1].map(s=>({lbl:`${s}★`,v:groups.filter(g=>g.star===s).reduce((a,g)=>a+g.closing,0),c:['#f59e0b','#22c55e','#3b82f6','#a855f7','#ef4444'][5-s]}));
   document.getElementById('starDonut').innerHTML=donut(starData.filter(d=>d.v>0),[]);
-  const repUnits=stock.filter(e=>e.type==='IN'&&e.repType==='Reporting').reduce((s,e)=>s+e.qty,0);
-  const nrepUnits=stock.filter(e=>e.type==='IN'&&e.repType==='Non-Reporting').reduce((s,e)=>s+e.qty,0);
+  const repUnits=groups.filter(g=>g.repType==='Reporting').reduce((s,g)=>s+g.closing,0);
+  const nrepUnits=groups.filter(g=>g.repType==='Non-Reporting').reduce((s,g)=>s+g.closing,0);
   document.getElementById('repDonut').innerHTML=donut([{lbl:'Reporting',v:repUnits,c:'#22c55e'},{lbl:'Non-Rpt',v:nrepUnits,c:'#f97316'}],[]);
 
   // TOP BRANDS TABLE
